@@ -152,7 +152,7 @@
     var reRegExpChar = /[\\^$.*+?()[\]{}|]/g,
         reHasRegExpChar = RegExp(reRegExpChar.source);
 
-    /** Used to match leading and trailing whitespace. */
+    /** 用于匹配前导空白和尾随空白。*/
     var reTrim = /^\s+|\s+$/g,
         reTrimStart = /^\s+/,
         reTrimEnd = /\s+$/;
@@ -177,19 +177,19 @@
     /** Used to match `RegExp` flags from their coerced string values. */
     var reFlags = /\w*$/;
 
-    /** Used to detect bad signed hexadecimal string values. */
+    /** 用于检测是否是有符号的十六进制字符串值。*/
     var reIsBadHex = /^[-+]0x[0-9a-f]+$/i;
 
-    /** Used to detect binary string values. */
+    /** 用于检测二进制字符串值. */
     var reIsBinary = /^0b[01]+$/i;
 
     /** Used to detect host constructors (Safari). */
     var reIsHostCtor = /^\[object .+?Constructor\]$/;
 
-    /** Used to detect octal string values. */
+    /** 用于检测八进制字符串值 */
     var reIsOctal = /^0o[0-7]+$/i;
 
-    /** Used to detect unsigned integer values. */
+    /** 用于检测无符号整数值 */
     var reIsUint = /^(?:0|[1-9]\d*)$/;
 
     /** Used to match Latin Unicode letters (excluding mathematical operators). */
@@ -1114,12 +1114,12 @@
     }
 
     /**
-     * Gets the value at `key` of `object`.
+     * 获取对象上对应属性的值。
      *
      * @private
-     * @param {Object} [object] The object to query.
-     * @param {string} key The key of the property to get.
-     * @returns {*} Returns the property value.
+     * @param {Object} [object] 要查询的对象
+     * @param {string} key 要获取的属性的键
+     * @returns {*} 返回属性的值
      */
     function getValue(object, key) {
         return object == null ? undefined : object[key];
@@ -1435,16 +1435,16 @@
         /** Used to detect overreaching core-js shims. */
         var coreJsData = context['__core-js_shared__'];
 
-        /** Used to resolve the decompiled source of functions. */
+        /** 返回一个表示当前函数源代码的字符串*/
         var funcToString = funcProto.toString;
 
-        /** Used to check objects for own properties. */
+        /** 方法会返回一个布尔值，指示对象自身属性中是否具有指定的属性 */
         var hasOwnProperty = objectProto.hasOwnProperty;
 
         /** Used to generate unique IDs. */
         var idCounter = 0;
 
-        /** Used to detect methods masquerading as native. */
+        /** 用于检测伪装成原生的方法。 */
         var maskSrcKey = (function () {
             var uid = /[^.]+$/.exec(coreJsData && coreJsData.keys && coreJsData.keys.IE_PROTO || '');
             return uid ? ('Symbol(src)_1.' + uid) : '';
@@ -1463,7 +1463,7 @@
         /** Used to restore the original `_` reference in `_.noConflict`. */
         var oldDash = root._;
 
-        /** Used to detect if a method is native. */
+        /** 用于检查一个函数是否是原生的 */
         var reIsNative = RegExp('^' +
             funcToString.call(hasOwnProperty).replace(reRegExpChar, '\\$&')
                 .replace(/hasOwnProperty|(function).*?(?=\\\()| for .+?(?=\\\])/g, '$1.*?') + '$'
@@ -3415,12 +3415,11 @@
         }
 
         /**
-         * The base implementation of `_.isNative` without bad shim checks.
+         * `_.isNative`的基本实现,没有错误的Shim检查。
          *
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is a native function,
-         *  else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果value是一个原生函数，返回true，否则返回false
          */
         function baseIsNative(value) {
             if (!isObject(value) || isMasked(value)) {
@@ -4051,13 +4050,13 @@
         }
 
         /**
-         * The base implementation of `_.slice` without an iteratee call guard.
+         * `_.slice`的基础实现
          *
          * @private
-         * @param {Array} array The array to slice.
-         * @param {number} [start=0] The start position.
-         * @param {number} [end=array.length] The end position.
-         * @returns {Array} Returns the slice of `array`.
+         * @param {Array} array 要裁剪的数组
+         * @param {number} [start=0] 开始位置
+         * @param {number} [end=array.length] 结束位置
+         * @returns {Array} 返回裁剪的数组
          */
         function baseSlice(array, start, end) {
             var index = -1,
@@ -5981,12 +5980,12 @@
         }
 
         /**
-         * Gets the native function at `key` of `object`.
-         *
+         * 获取对象上key对应的原生函数
+         * 
          * @private
-         * @param {Object} object The object to query.
-         * @param {string} key The key of the method to get.
-         * @returns {*} Returns the function if it's native, else `undefined`.
+         * @param {Object} object 要查询的object
+         * @param {string} key 要获取的方法的key
+         * @returns {*} 如果value是原生函数，就返回函数，否则就返回undefined;
          */
         function getNative(object, key) {
             var value = getValue(object, key);
@@ -6269,12 +6268,12 @@
         }
 
         /**
-         * Checks if `value` is a valid array-like index.
+         * 检查value是否是类数组的有效索引
          *
          * @private
-         * @param {*} value The value to check.
-         * @param {number} [length=MAX_SAFE_INTEGER] The upper bounds of a valid index.
-         * @returns {boolean} Returns `true` if `value` is a valid index, else `false`.
+         * @param {*} value 要检查的value值
+         * @param {number} [length=MAX_SAFE_INTEGER] 有效索引的上限
+         * @returns {boolean} 如果是有效索引，就返回true，反之返回false。
          */
         function isIndex(value, length) {
             var type = typeof value;
@@ -6287,17 +6286,17 @@
         }
 
         /**
-         * Checks if the given arguments are from an iteratee call.
+         * 检查所给的参数是否来自迭代器调用(eg:_.map(array,_.chunk))
          *
          * @private
-         * @param {*} value The potential iteratee value argument.
-         * @param {*} index The potential iteratee index or key argument.
-         * @param {*} object The potential iteratee object argument.
-         * @returns {boolean} Returns `true` if the arguments are from an iteratee call,
-         *  else `false`.
+         * @param {*} value 可能是迭代器的value参数
+         * @param {*} index 可能是迭代器的index或key参数
+         * @param {*} object 可能是迭代器的object参数
+         * @returns {boolean} 如果参数来自迭代器调用，那么返回true，否则返回false
          */
         function isIterateeCall(value, index, object) {
-            if (!isObject(object)) {
+            if (!isObject(object)) {// 判断object是否是对象，如果是，那么有可能是迭代器调用。如果不是，就不是迭代器调用
+                //eg:_.map的回调函数接收三个参数，第三个是迭代的数组本身。
                 return false;
             }
             var type = typeof index;
@@ -6371,7 +6370,7 @@
 
         /**
          * Checks if `func` has its source masked.
-         *
+         * 
          * @private
          * @param {Function} func The function to check.
          * @returns {boolean} Returns `true` if `func` is masked, else `false`.
@@ -6750,25 +6749,25 @@
          * 如果value不是string也不是symbol，把value转为string键
          *
          * @private
-         * @param {*} value The value to inspect.
-         * @returns {string|symbol} Returns the key.
+         * @param {*} value 要检查的值
+         * @returns {string|symbol} 返回key
          */
         function toKey(value) {
             if (typeof value == 'string' || isSymbol(value)) {
                 return value;
             }
             var result = (value + '');
-            // -0 +'' = '0'抹去了符号。 +0 +'' = '0'也抹去了符号。
-            // 作者没有考虑到？
+            // -0 +'' = '0'抹去了符号。
+            // 因为+0 跟 0没办法区分， -0 跟 0可以区分，所以这里没有考虑+0的情况。
             return (result == '0' && (1 / value) == -INFINITY) ? '-0' : result;
         }
 
         /**
-         * Converts `func` to its source code.
+         * 将func转换为其源代码（字符串形式返回）
          *
          * @private
-         * @param {Function} func The function to convert.
-         * @returns {string} Returns the source code.
+         * @param {Function} func 要转换的代码
+         * @returns {string} 返回源代码
          */
         function toSource(func) {
             if (func != null) {
@@ -6821,18 +6820,16 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates an array of elements split into groups the length of `size`.
-         * If `array` can't be split evenly, the final chunk will be the remaining
-         * elements.
+         * 将数组（array）拆分成多个 size 长度的区块，并将这些区块组成一个新数组。 如果array无法被分割成全部等长的区块，那么最后剩余的元素将组成一个区块。
          *
          * @static
          * @memberOf _
          * @since 3.0.0
          * @category Array
-         * @param {Array} array The array to process.
-         * @param {number} [size=1] The length of each chunk
-         * @param- {Object} [guard] Enables use as an iteratee for methods like `_.map`.
-         * @returns {Array} Returns the new array of chunks.
+         * @param {Array} array  需要处理的数组
+         * @param {number} [size=1] 每个区块的长度
+         * @param- {Object} [guard] 可以用作`_.map`等方法的迭代器。
+         * @returns {Array} 返回包含所有区块的新数组（比原数组多一个维度）
          * @example
          *
          * _.chunk(['a', 'b', 'c', 'd'], 2);
@@ -6853,7 +6850,7 @@
             }
             var index = 0,
                 resIndex = 0,
-                result = Array(nativeCeil(length / size));
+                result = Array(nativeCeil(length / size)); //创建一个已知大小的数组
 
             while (index < length) {
                 result[resIndex++] = baseSlice(array, index, (index += size));
@@ -11309,16 +11306,14 @@
         var isArrayBuffer = nodeIsArrayBuffer ? baseUnary(nodeIsArrayBuffer) : baseIsArrayBuffer;
 
         /**
-         * Checks if `value` is array-like. A value is considered array-like if it's
-         * not a function and has a `value.length` that's an integer greater than or
-         * equal to `0` and less than or equal to `Number.MAX_SAFE_INTEGER`.
-         *
+         * 检查value是否是类数组。如果value不是一个函数，且有它length属性，length属性值是一个大于等于
+         * 0且小于等于`Number.MAX_SAFE_INTEGER`的整数，那么value就被认为是一个类数组。
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is array-like, else `false`.
+         * @param {*} value 要检查的value
+         * @returns {boolean} 如果value是一个类数组，就返回true，反之，false
          * @example
          *
          * _.isArrayLike([1, 2, 3]);
@@ -11334,6 +11329,7 @@
          * // => false
          */
         function isArrayLike(value) {
+            //这里也把函数排除了，因为函数也有length属性，但不是类数组。
             return value != null && isLength(value.length) && !isFunction(value);
         }
 
@@ -11632,13 +11628,13 @@
         }
 
         /**
-         * Checks if `value` is classified as a `Function` object.
+         * 检查 value 是否是 Function 对象。
          *
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Lang
-         * @param {*} value The value to check.
+         * @param {*} value 要检查的value
          * @returns {boolean} Returns `true` if `value` is a function, else `false`.
          * @example
          *
@@ -11649,6 +11645,7 @@
          * // => false
          */
         function isFunction(value) {
+            //不是对象，一定不是函数
             if (!isObject(value)) {
                 return false;
             }
@@ -11689,17 +11686,16 @@
         }
 
         /**
-         * Checks if `value` is a valid array-like length.
+         * 检查 value 是否为有效的类数组长度。 
          *
-         * **Note:** This method is loosely based on
-         * [`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
+         * 注意: 这个函数基于[`ToLength`](http://ecma-international.org/ecma-262/7.0/#sec-tolength).
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is a valid length, else `false`.
+         * @param {*} value 要检查的value
+         * @returns {boolean} 如果 value 是一个有效长度，那么返回 true，否则返回 false
          * @example
          *
          * _.isLength(3);
@@ -11715,6 +11711,7 @@
          * // => false
          */
         function isLength(value) {
+            //有效的类数组长度，value必须是number类型的，且必须是大于等于0和小于等于MAX_SAFE_INTEGER的整数
             return typeof value == 'number' &&
                 value > -1 && value % 1 == 0 && value <= MAX_SAFE_INTEGER;
         }
@@ -11727,8 +11724,8 @@
          * @memberOf _
          * @since 0.1.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is an object, else `false`.
+         * @param {*} value 要检查的value
+         * @returns {boolean} 如果是一个对象，返回true，反之false
          * @example
          *
          * _.isObject({});
@@ -11745,6 +11742,7 @@
          */
         function isObject(value) {
             var type = typeof value;
+            //这里把null从object对象中移除了
             return value != null && (type == 'object' || type == 'function');
         }
 
@@ -12336,14 +12334,14 @@
         }
 
         /**
-         * Converts `value` to a finite number.
+         * 转换 value 为一个有限数字。
          *
          * @static
          * @memberOf _
          * @since 4.12.0
          * @category Lang
-         * @param {*} value The value to convert.
-         * @returns {number} Returns the converted number.
+         * @param {*} value 要转换的值
+         * @returns {number} 返回转换后的数字。
          * @example
          *
          * _.toFinite(3.2);
@@ -12367,21 +12365,21 @@
                 var sign = (value < 0 ? -1 : 1);
                 return sign * MAX_INTEGER;
             }
-            return value === value ? value : 0;
+            return value === value ? value : 0; //NaN => 0
         }
 
         /**
-         * Converts `value` to an integer.
+         * 转换 value 为一个整数。 
          *
-         * **Note:** This method is loosely based on
+         * 注意: 这个方法基于
          * [`ToInteger`](http://www.ecma-international.org/ecma-262/7.0/#sec-tointeger).
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to convert.
-         * @returns {number} Returns the converted integer.
+         * @param {*} value 要转换的值。
+         * @returns {number} 返回转换后的整数。
          * @example
          *
          * _.toInteger(3.2);
@@ -12398,8 +12396,8 @@
          */
         function toInteger(value) {
             var result = toFinite(value),
-                remainder = result % 1;
-
+                remainder = result % 1; //得到小数点后面的数
+            // 多一次判断，可以保留-0的符号
             return result === result ? (remainder ? result - remainder : result) : 0;
         }
 
@@ -12435,14 +12433,14 @@
         }
 
         /**
-         * Converts `value` to a number.
+         * 转换 value 为一个数字。
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to process.
-         * @returns {number} Returns the number.
+         * @param {*} value 要处理的值。
+         * @returns {number}  返回数字。
          * @example
          *
          * _.toNumber(3.2);
@@ -12464,18 +12462,21 @@
             if (isSymbol(value)) {
                 return NAN;
             }
-            if (isObject(value)) {
+            if (isObject(value)) { //如果value的valueOf属性是个函数，就返回value.valueOf(),否则返回对象本身；
                 var other = typeof value.valueOf == 'function' ? value.valueOf() : value;
-                value = isObject(other) ? (other + '') : other;
+                value = isObject(other) ? (other + '') : other; // 如果other是对象，就转换为字符串，否则返回other.
             }
             if (typeof value != 'string') {
-                return value === 0 ? value : +value;
+                //之所以要把0单独拎出来，我觉得是要保留0的符号。
+                //这里通过+运算符将非数字的undefined，null，false，true转换为数字
+                return value === 0 ? value : +value; // +undefined => NaN;+null => 0;+false=>0;+true=>true;
             }
-            value = value.replace(reTrim, '');
-            var isBinary = reIsBinary.test(value);
+            value = value.replace(reTrim, ''); //去掉首位的空白
+            var isBinary = reIsBinary.test(value); //二进制字符串以'0b'开头，八进制字符串以’0o‘开头
             return (isBinary || reIsOctal.test(value))
-                ? freeParseInt(value.slice(2), isBinary ? 2 : 8)
-                : (reIsBadHex.test(value) ? NAN : +value);
+                ? freeParseInt(value.slice(2), isBinary ? 2 : 8) //value.slice(2)截取数值。
+                : (reIsBadHex.test(value) ? NAN : +value); //一元正号是转换其他对象到数值的最快方法，也是最推荐的做法，因为它不会对数值执行任何多余操作。它可以将字符串转换成整数和浮点数形式，也可以转换非字符串值 true，false 和 null。
+                //小数和十六进制格式字符串也可以转换成数值。负数形式字符串也可以转换成数值（对于十六进制不适用）。如果它不能解析一个值，则计算结果为 NaN.
         }
 
         /**
