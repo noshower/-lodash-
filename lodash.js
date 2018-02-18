@@ -6859,15 +6859,15 @@
         }
 
         /**
-         * Creates an array with all falsey values removed. The values `false`, `null`,
-         * `0`, `""`, `undefined`, and `NaN` are falsey.
-         *
+         * 创建一个新数组，所有的错误的值元素都被移除。这些错误的值元素包括`false`, `null`,
+         * `0`, `""`, `undefined`, and `NaN`
+         * 
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Array
          * @param {Array} array The array to compact.
-         * @returns {Array} Returns the new array of filtered values.
+         * @returns {Array} 返回过滤掉所有错误的值元素的新数组
          * @example
          *
          * _.compact([0, 1, false, 2, '', 3]);
@@ -6875,13 +6875,13 @@
          */
         function compact(array) {
             var index = -1,
-                length = array == null ? 0 : array.length,
+                length = array == null ? 0 : array.length, 
+                // 这里没有处理array.length为undefined的情况，因为0 < undefined 返回true
                 resIndex = 0,
                 result = [];
-
             while (++index < length) {
                 var value = array[index];
-                if (value) {
+                if (value) { //只要非错误的值才会放入结果数组中
                     result[resIndex++] = value;
                 }
             }
