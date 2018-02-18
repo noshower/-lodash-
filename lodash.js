@@ -1422,7 +1422,10 @@
             Error = context.Error,
             Function = context.Function,
             Math = context.Math,
-            Object = context.Object,
+            //Object构造函数为给定值创建一个对象包装器。如果给定值是 null 或 undefined，将会创建并返回一个空对象，
+            //否则，将返回一个与给定值对应类型的对象。
+            //当以非构造函数形式被调用时，Object 等同于 new Object()。
+            Object = context.Object, 
             RegExp = context.RegExp,
             String = context.String,
             TypeError = context.TypeError;
@@ -3070,11 +3073,11 @@
         }
 
         /**
-         * The base implementation of `getTag` without fallbacks for buggy environments.
+         * `getTag`的基础实现
          *
          * @private
-         * @param {*} value The value to query.
-         * @returns {string} Returns the `toStringTag`.
+         * @param {*} value 要查询的值
+         * @returns {string} 返回`toStringTag`.
          */
         function baseGetTag(value) {
             if (value == null) {
@@ -3234,11 +3237,11 @@
         }
 
         /**
-         * The base implementation of `_.isArguments`.
+         * `_.isArguments`的实现基础.
          *
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is an `arguments` object,
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果值是arguments对象就返回true
          */
         function baseIsArguments(value) {
             return isObjectLike(value) && baseGetTag(value) == argsTag;
@@ -4746,12 +4749,12 @@
         }
 
         /**
-         * Copies the values of `source` to `array`.
+         * 将`source`的值复制到`array`。
          *
          * @private
-         * @param {Array} source The array to copy values from.
-         * @param {Array} [array=[]] The array to copy values to.
-         * @returns {Array} Returns `array`.
+         * @param {Array} source 要复制值的源数组
+         * @param {Array} [array=[]] 将值复制过去的目标数组
+         * @returns {Array} 返回新数组
          */
         function copyArray(source, array) {
             var index = -1,
@@ -5992,27 +5995,44 @@
             return baseIsNative(value) ? value : undefined;
         }
 
-        /**
-         * A specialized version of `baseGetTag` which ignores `Symbol.toStringTag` values.
+         /**
+         *  `baseGetTag`的特别版本，忽略了 `Symbol.toStringTag`的值.
          *
          * @private
-         * @param {*} value The value to query.
-         * @returns {string} Returns the raw `toStringTag`.
+         * @param {*} value 要查询的值
+         * @returns {string} 返回原始的`toStringTag`.
+         * @example
+         * 
+         * let obj =  {
+         *        type : 'Person',
+         *        get [Symbol.toStringTag]() {
+         *           return this.type;
+         *        },
+         *        set [Symbol.toStringTag](value){
+         *          this.type = value;
+         *        }
+         *  }
+         *  // eg: 当var value = obj;
+         *  // var result = nativeObjectToString.call(value);
+         *  // 此时 result = '[object Person]'; 原始的toString()结果被遮蔽了
+         *  // 如果在 nativeObjectToString.call(value)之前先value[Symbol.toStringTag] = undefined;
+         *  // 那么 result = '[object Object]';
+         * 
          */
         function getRawTag(value) {
             var isOwn = hasOwnProperty.call(value, symToStringTag),
                 tag = value[symToStringTag];
 
             try {
-                value[symToStringTag] = undefined;
-                var unmasked = true;
+                value[symToStringTag] = undefined; //这里给value赋值了，或许value本身没有[symToStringTag]属性
+                var unmasked = true; //到这一步，说明此时nativeObjectToString.call(value)的结果没有被别的属性遮蔽。
             } catch (e) { }
 
-            var result = nativeObjectToString.call(value);
-            if (unmasked) {
-                if (isOwn) {
+            var result = nativeObjectToString.call(value);//通过Object.prototype.toString,获取对象的字符串表示
+            if (unmasked) { 
+                if (isOwn) {//如果value原来有[symToStringTag]属性，就给它还原
                     value[symToStringTag] = tag;
-                } else {
+                } else { //如果value原来没有[symToStringTag]属性，就删除它
                     delete value[symToStringTag];
                 }
             }
@@ -6256,11 +6276,11 @@
         }
 
         /**
-         * Checks if `value` is a flattenable `arguments` object or array.
+         * 检查value是否是可以扁平化的`arguments`对象或数组
          *
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is flattenable, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果是value可以扁平化的，返回true，反之返回false
          */
         function isFlattenable(value) {
             return isArray(value) || isArguments(value) ||
@@ -6546,11 +6566,11 @@
         }
 
         /**
-         * Converts `value` to a string using `Object.prototype.toString`.
+         * 使用 `Object.prototype.toString`将`value`转换成字符串
          *
          * @private
-         * @param {*} value The value to convert.
-         * @returns {string} Returns the converted string.
+         * @param {*} value 要转变的值
+         * @returns {string} 返回转换后的字符串。
          */
         function objectToString(value) {
             return nativeObjectToString.call(value);
@@ -6889,16 +6909,14 @@
         }
 
         /**
-         * Creates a new array concatenating `array` with any additional arrays
-         * and/or values.
-         *
+         * 创建一个新数组，将array与任何数组 或 值连接在一起。
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Array
-         * @param {Array} array The array to concatenate.
-         * @param {...*} [values] The values to concatenate.
-         * @returns {Array} Returns the new concatenated array.
+         * @param {Array} array 要连接的数组
+         * @param {...*} [values] 要连接的所有值
+         * @returns {Array} 返回新的已连接的数组
          * @example
          *
          * var array = [1];
@@ -11262,14 +11280,14 @@
         };
 
         /**
-         * Checks if `value` is classified as an `Array` object.
+         * 检查`value`是否可以是数组对象
          *
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is an array, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果是一个数组就返回true，反之返回false
          * @example
          *
          * _.isArray([1, 2, 3]);
@@ -11284,7 +11302,7 @@
          * _.isArray(_.noop);
          * // => false
          */
-        var isArray = Array.isArray;
+        var isArray = Array.isArray; // Array.isArray是javascript数组的原生方法
 
         /**
          * Checks if `value` is classified as an `ArrayBuffer` object.
@@ -11747,15 +11765,15 @@
         }
 
         /**
-         * Checks if `value` is object-like. A value is object-like if it's not `null`
-         * and has a `typeof` result of "object".
+         * 检查value是否是类对象。如果它不是`null`且 `typeof`的结果是object，那么就是类对象。
+         * (函数的typeof结果是`function`)
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is object-like, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果是类对象就返回true，否则返回false
          * @example
          *
          * _.isObjectLike({});
