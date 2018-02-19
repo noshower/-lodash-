@@ -639,12 +639,12 @@
     }
 
     /**
-     * Appends the elements of `values` to `array`.
+     * 将数组`values`中的的元素附加到`array`中
      *
      * @private
-     * @param {Array} array The array to modify.
-     * @param {Array} values The values to append.
-     * @returns {Array} Returns `array`.
+     * @param {Array} array 要修改的数组
+     * @param {Array} values 要附加的值
+     * @returns {Array} 返回 `array`.
      */
     function arrayPush(array, values) {
         var index = -1,
@@ -2939,15 +2939,15 @@
         }
 
         /**
-         * The base implementation of `_.flatten` with support for restricting flattening.
+         * `_.flatten`的基础实现，支持限制扁平化
          *
          * @private
-         * @param {Array} array The array to flatten.
-         * @param {number} depth The maximum recursion depth.
-         * @param {boolean} [predicate=isFlattenable] The function invoked per iteration.
-         * @param {boolean} [isStrict] Restrict to values that pass `predicate` checks.
-         * @param {Array} [result=[]] The initial result value.
-         * @returns {Array} Returns the new flattened array.
+         * @param {Array} array 要扁平化的数组（类数组也支持）
+         * @param {number} depth 最大递归深度
+         * @param {boolean} [predicate=isFlattenable] 每个迭代调用的函数，默认是isFlattenable
+         * @param {boolean} [isStrict] 限制值，使其需要通过`predicate`函数检查
+         * @param {Array} [result=[]] 初始结果值。
+         * @returns {Array} 返回新的已经扁平化的数组
          */
         function baseFlatten(array, depth, predicate, isStrict, result) {
             var index = -1,
@@ -2957,15 +2957,15 @@
             result || (result = []);
 
             while (++index < length) {
-                var value = array[index];
-                if (depth > 0 && predicate(value)) {
+                var value = array[index]; 
+                if (depth > 0 && predicate(value)) {//对value进行断言
                     if (depth > 1) {
-                        // Recursively flatten arrays (susceptible to call stack limits).
+                        // 递归的扁平化数组(易受堆栈限制).
                         baseFlatten(value, depth - 1, predicate, isStrict, result);
                     } else {
-                        arrayPush(result, value);
+                        arrayPush(result, value); //通过predicate的判断，这里的value是数组
                     }
-                } else if (!isStrict) {
+                } else if (!isStrict) { //当isStrict不传，那么不能扁平化的value，就直接加入到结果数组的末尾
                     result[result.length] = value;
                 }
             }
@@ -7329,14 +7329,14 @@
         }
 
         /**
-         * Flattens `array` a single level deep.
+         *  将`array`扁平化一层
          *
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Array
-         * @param {Array} array The array to flatten.
-         * @returns {Array} Returns the new flattened array.
+         * @param {Array} array 要扁平化的数组
+         * @returns {Array} 返回新的已扁平化的数组
          * @example
          *
          * _.flatten([1, [2, [3, [4]], 5]]);
@@ -7344,18 +7344,18 @@
          */
         function flatten(array) {
             var length = array == null ? 0 : array.length;
-            return length ? baseFlatten(array, 1) : [];
+            return length ? baseFlatten(array, 1) : []; //能够扁平化，就调用基础函数，此时深度为1；否则返回空数组。
         }
 
         /**
-         * Recursively flattens `array`.
+         * 递归的扁平化`array`,直至一维数组
          *
          * @static
          * @memberOf _
          * @since 3.0.0
          * @category Array
-         * @param {Array} array The array to flatten.
-         * @returns {Array} Returns the new flattened array.
+         * @param {Array} array 要扁平化的数组
+         * @returns {Array} 返回新的已扁平化的数组，结果为一维数组
          * @example
          *
          * _.flattenDeep([1, [2, [3, [4]], 5]]);
@@ -7363,19 +7363,19 @@
          */
         function flattenDeep(array) {
             var length = array == null ? 0 : array.length;
-            return length ? baseFlatten(array, INFINITY) : [];
+            return length ? baseFlatten(array, INFINITY) : []; 
         }
 
         /**
-         * Recursively flatten `array` up to `depth` times.
+         * 递归的扁平化`array`直到次数达到`depth`次.
          *
          * @static
          * @memberOf _
          * @since 4.4.0
          * @category Array
-         * @param {Array} array The array to flatten.
-         * @param {number} [depth=1] The maximum recursion depth.
-         * @returns {Array} Returns the new flattened array.
+         * @param {Array} array 要扁平化的数组（类数组也可以）
+         * @param {number} [depth=1] 递归的最大限度
+         * @returns {Array} 返回新的已扁平化的数组
          * @example
          *
          * var array = [1, [2, [3, [4]], 5]];
@@ -7388,10 +7388,10 @@
          */
         function flattenDepth(array, depth) {
             var length = array == null ? 0 : array.length;
-            if (!length) {
+            if (!length) { //当array是null，undefined，number，boolean类型或length属性值为0或不存在length属性，直接返回空数组
                 return [];
             }
-            depth = depth === undefined ? 1 : toInteger(depth);
+            depth = depth === undefined ? 1 : toInteger(depth); //给depth设置默认值1
             return baseFlatten(array, depth);
         }
 
