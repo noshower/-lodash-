@@ -6936,10 +6936,10 @@
             var args = Array(length - 1),
                 array = arguments[0],
                 index = length;
-
             while (index--) {
                 args[index - 1] = arguments[index];
             }
+            //通过baseFlatten(args, 1)，把要连接到array中的参数扁平化一层
             return arrayPush(isArray(array) ? copyArray(array) : [array], baseFlatten(args, 1));
         }
 
