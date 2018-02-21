@@ -1915,7 +1915,7 @@
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear(); //清空hash，同时将size设置为0
+            this.clear(); //初始化this.__data__ 和 size
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -1923,7 +1923,7 @@
         }
 
         /**
-         * 从hash中移除所有的键值对
+         * 从hash中移除所有的键值对(也可以用作初始化__data__和size)
          *
          * @private
          * @name clear
@@ -2025,7 +2025,7 @@
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear(); //清空ListCache，同时size设置为0
+            this.clear(); //初始化this.__data__ 和 size
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -2033,7 +2033,7 @@
         }
 
         /**
-         * 从列表缓存中移除所有的键值对
+         * 从列表缓存中移除所有的键值对(也可以用作初始化__data__和size)
          * 缓存列表的__data__就像这个数组[[key1,value1],[key2,value2]]
          *
          * @private
@@ -2143,7 +2143,7 @@
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear(); //清空map
+            this.clear(); //初始化this.__data__ 和 size
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -2237,7 +2237,8 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * 创建一个数组缓存对象来存储唯一值(以键值对的形式，缓存到Map中)。
+         * 创建一个数组缓存对象来存储唯一值(Set的api与ES6原生set的api保持一致）。
+         * SetCache看起来只缓存值，但是也是已键值对的形式缓存，只不过键值对的值统一都是`HASH_UNDEFINED`
          *
          * @private
          * @constructor
@@ -2254,14 +2255,14 @@
         }
 
         /**
-         * Adds `value` to the array cache.
+         * 添加`value`到数组缓存中（value为键，值统一都是`HASH_UNDEFINED`）
          *
          * @private
          * @name add
          * @memberOf SetCache
          * @alias push
-         * @param {*} value The value to cache.
-         * @returns {Object} Returns the cache instance.
+         * @param {*} value 要缓存的值
+         * @returns {Object} 返回SetCache的实例
          */
         function setCacheAdd(value) {
             this.__data__.set(value, HASH_UNDEFINED);
@@ -2269,19 +2270,19 @@
         }
 
         /**
-         * Checks if `value` is in the array cache.
+         * 检查`value`是否被缓存了
          *
          * @private
          * @name has
          * @memberOf SetCache
-         * @param {*} value The value to search for.
-         * @returns {number} Returns `true` if `value` is found, else `false`.
+         * @param {*} value 要查询的value值
+         * @returns {number} 返回`value`被找到，就返回true，否则返回false
          */
         function setCacheHas(value) {
             return this.__data__.has(value);
         }
 
-        // Add methods to `SetCache`.
+        // 添加方法到`SetCache`.
         SetCache.prototype.add = SetCache.prototype.push = setCacheAdd;
         SetCache.prototype.has = setCacheHas;
 
