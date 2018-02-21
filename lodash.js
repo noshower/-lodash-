@@ -2016,7 +2016,7 @@
         /**
          * 创建一个列表来缓存对象。当环境不支持原生的map，可以代替原生的map使用
          * 与Hash保持相同的api(即clear,get,set,has,delete)
-         *
+         * 
          * @private
          * @constructor
          * @param {Array} [entries] 要缓存的键值对数组。
@@ -2034,6 +2034,7 @@
 
         /**
          * 从列表缓存中移除所有的键值对
+         * 缓存列表的__data__就像这个数组[[key1,value1],[key2,value2]]
          *
          * @private
          * @name clear
@@ -2045,19 +2046,19 @@
         }
 
         /**
-         * Removes `key` and its value from the list cache.
+         * 从list cache中移除`key`对应的键值对数组
          *
          * @private
          * @name delete
          * @memberOf ListCache
-         * @param {string} key The key of the value to remove.
-         * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+         * @param {string} key 要移除值的key
+         * @returns {boolean} 如果键值对数组[key,value]被移除，就返回true，否则返回false
          */
         function listCacheDelete(key) {
-            var data = this.__data__,
+            var data = this.__data__, 
                 index = assocIndexOf(data, key);
 
-            if (index < 0) {
+            if (index < 0) { //列表中不存在key对应的键值对数组，就返回false，因为没有进行键值对移除
                 return false;
             }
             var lastIndex = data.length - 1;
@@ -2071,58 +2072,58 @@
         }
 
         /**
-         * Gets the list cache value for `key`.
+         * 得到缓存列表中`key`对应的缓存值（缓存列表的__data__就像这个数组[[key1,value1],[key2,value2]]）
          *
          * @private
          * @name get
          * @memberOf ListCache
-         * @param {string} key The key of the value to get.
-         * @returns {*} Returns the entry value.
+         * @param {string} key 要得到value的`key`
+         * @returns {*} 返回value
          */
         function listCacheGet(key) {
-            var data = this.__data__,
-                index = assocIndexOf(data, key);
-
+            var data = this.__data__, //缓存列表是个数组
+                index = assocIndexOf(data, key); //获取key在缓存列表中的索引
+                //如果不存在key的键值对，就返回undefined，否则就返回data[index][1]
             return index < 0 ? undefined : data[index][1];
         }
 
         /**
-         * Checks if a list cache value for `key` exists.
+         * 检查列表中是否存在`key`的缓存值
          *
          * @private
          * @name has
          * @memberOf ListCache
-         * @param {string} key The key of the entry to check.
-         * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+         * @param {string} key 要检查键值对的键
+         * @returns {boolean} 如果键值对的`key`存在于缓存列表中，就返回true，否则返回false
          */
         function listCacheHas(key) {
             return assocIndexOf(this.__data__, key) > -1;
         }
 
         /**
-         * Sets the list cache `key` to `value`.
+         * 设置列表的`key`和`value`
          *
          * @private
          * @name set
          * @memberOf ListCache
-         * @param {string} key The key of the value to set.
-         * @param {*} value The value to set.
-         * @returns {Object} Returns the list cache instance.
+         * @param {string} key 要设置的值的key
+         * @param {*} value 要设置的value
+         * @returns {Object} 返回ListCache的实例
          */
         function listCacheSet(key, value) {
             var data = this.__data__,
                 index = assocIndexOf(data, key);
 
-            if (index < 0) {
+            if (index < 0) {//如果`key`对应的键值对不存在，那么size加1，同时data添加一组键值对[key,value]
                 ++this.size;
                 data.push([key, value]);
-            } else {
+            } else {//`key`对应的键值对[key,value]已存在，则更新key的value
                 data[index][1] = value;
             }
-            return this;
+            return this; //返回实例
         }
 
-        // Add methods to `ListCache`.
+        // 添加方法到`ListCache`.
         ListCache.prototype.clear = listCacheClear;
         ListCache.prototype['delete'] = listCacheDelete;
         ListCache.prototype.get = listCacheGet;
@@ -2492,8 +2493,8 @@
         }
 
         /**
-         * Gets the index at which the `key` is found in `array` of key-value pairs.
-         *
+         * 获取在键值对的`array`中找到`key`的索引（array就像这样的数组[[key1,value1],[key2,value2]]）
+         * 
          * @private
          * @param {Array} array 要操作的数组
          * @param {*} key 要查找的key
@@ -2502,8 +2503,8 @@
         function assocIndexOf(array, key) {
             var length = array.length;
             while (length--) {
-                if (eq(array[length][0], key)) {
-                    return length;
+                if (eq(array[length][0], key)) {//使用eq方法来判断相等，主要是考虑到key是NaN的场景
+                    return length; //length已经减了1，因此返回的就是匹配到的索引
                 }
             }
             return -1;
