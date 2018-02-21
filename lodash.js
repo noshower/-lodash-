@@ -988,7 +988,7 @@
     }
 
     /**
-     * `_.unary`的基本实现不支持存储元数据
+     * `_.unary`的基本实现,不支持存储元数据
      *
      * @private
      * @param {Function} func 要将参数限制为1个的函数
@@ -1905,7 +1905,7 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * 创建一个hash对象
+         * 创建一个hash对象，与Map和ListCache保持相同的api(即clear,get,set,has,delete)
          *
          * @private
          * @constructor
@@ -2014,17 +2014,18 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates an list cache object.
+         * 创建一个列表来缓存对象。当环境不支持原生的map，可以代替原生的map使用
+         * 与Hash保持相同的api(即clear,get,set,has,delete)
          *
          * @private
          * @constructor
-         * @param {Array} [entries] The key-value pairs to cache.
+         * @param {Array} [entries] 要缓存的键值对数组。
          */
         function ListCache(entries) {
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear();
+            this.clear(); //清空ListCache，同时size设置为0
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -2032,14 +2033,14 @@
         }
 
         /**
-         * Removes all key-value entries from the list cache.
+         * 从列表缓存中移除所有的键值对
          *
          * @private
          * @name clear
          * @memberOf ListCache
          */
         function listCacheClear() {
-            this.__data__ = [];
+            this.__data__ = []; //数据缓存在数组中
             this.size = 0;
         }
 
@@ -2141,7 +2142,7 @@
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear();
+            this.clear(); //清空map
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -2157,7 +2158,7 @@
          */
         function mapCacheClear() {
             this.size = 0; //把size重置为0
-            this.__data__ = { //重置__data__
+            this.__data__ = { //重置__data__。从这里可知，根据key的类型，会分别将值存入三个不同对象中。
                 'hash': new Hash,
                 'map': new (Map || ListCache), //如果全局环境中有ES6的Map就使用es6的Map,否则就使用自定义的`ListCache`
                 'string': new Hash
@@ -2494,9 +2495,9 @@
          * Gets the index at which the `key` is found in `array` of key-value pairs.
          *
          * @private
-         * @param {Array} array The array to inspect.
-         * @param {*} key The key to search for.
-         * @returns {number} Returns the index of the matched value, else `-1`.
+         * @param {Array} array 要操作的数组
+         * @param {*} key 要查找的key
+         * @returns {number} 返回匹配值的索引，否则返回-1
          */
         function assocIndexOf(array, key) {
             var length = array.length;
@@ -11168,17 +11169,17 @@
         }
 
         /**
-         * Performs a
+         * 执行
          * [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
-         * comparison between two values to determine if they are equivalent.
+         * 比较两者的值，来确定它们是否相等。（在===的基础上，多了了NaN与自身相等）
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to compare.
-         * @param {*} other The other value to compare.
-         * @returns {boolean} Returns `true` if the values are equivalent, else `false`.
+         * @param {*} value 要比较的值。
+         * @param {*} other 另一个要比较的值。
+         * @returns {boolean} 如果两个值相等返回 true ，否则返回 false 。
          * @example
          *
          * var object = { 'a': 1 };
@@ -11199,7 +11200,8 @@
          * _.eq(NaN, NaN);
          * // => true
          */
-        function eq(value, other) {
+        function eq(value, other) { //光是value === other还不够，还要考虑NaN的情况,因此有了后面一半的判断。使用value !== value，找出NaN.
+            //如果value是NaN，other是NaN,就返回true
             return value === other || (value !== value && other !== other);
         }
 
