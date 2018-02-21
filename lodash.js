@@ -2159,6 +2159,7 @@
          */
         function mapCacheClear() {
             this.size = 0; //把size重置为0
+            //这里之所以区分'hash'跟'string'，为了保证number类型,null和string类型的key能够正确被添加，而不是都当做string,这样key为1与key为'1'就不会被当做相同的key，可以分别缓存。
             this.__data__ = { //重置__data__。从这里可知，根据key的类型，会分别将值存入三个不同对象中。
                 'hash': new Hash,
                 'map': new (Map || ListCache), //如果全局环境中有ES6的Map就使用es6的Map,否则就使用自定义的`ListCache`
@@ -2167,66 +2168,66 @@
         }
 
         /**
-         * Removes `key` and its value from the map.
+         * 从map中移除指定的`key`的键值对
          *
          * @private
          * @name delete
          * @memberOf MapCache
-         * @param {string} key The key of the value to remove.
-         * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+         * @param {string} key 要移除值的键
+         * @returns {boolean} 如果键值对被移除，就返回true，否则返回false
          */
         function mapCacheDelete(key) {
             var result = getMapData(this, key)['delete'](key);
-            this.size -= result ? 1 : 0;
+            this.size -= result ? 1 : 0; //如果删除了键值对，size就减1。
             return result;
         }
 
         /**
-         * Gets the map value for `key`.
+         * 得到`key`对应的值
          *
          * @private
          * @name get
          * @memberOf MapCache
-         * @param {string} key The key of the value to get.
-         * @returns {*} Returns the entry value.
+         * @param {string} key 要得到的value的key
+         * @returns {*} 返回键值对的value
          */
         function mapCacheGet(key) {
             return getMapData(this, key).get(key);
         }
 
         /**
-         * Checks if a map value for `key` exists.
+         * 检查`key`对应的value是否存在
          *
          * @private
          * @name has
          * @memberOf MapCache
-         * @param {string} key The key of the entry to check.
-         * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+         * @param {string} key 要检查的键值对的key
+         * @returns {boolean} 如果`key`对应的键值对存在，就返回true，否则返回false
          */
         function mapCacheHas(key) {
             return getMapData(this, key).has(key);
         }
 
         /**
-         * Sets the map `key` to `value`.
+         * 设置键值对的`key`和`value`
          *
          * @private
          * @name set
          * @memberOf MapCache
-         * @param {string} key The key of the value to set.
-         * @param {*} value The value to set.
-         * @returns {Object} Returns the map cache instance.
+         * @param {string} key 要设置的value的key
+         * @param {*} value 要设置的value
+         * @returns {Object} 返回mapCache的实例
          */
         function mapCacheSet(key, value) {
             var data = getMapData(this, key),
-                size = data.size;
+                size = data.size; //缓存size值
 
             data.set(key, value);
-            this.size += data.size == size ? 0 : 1;
+            this.size += data.size == size ? 0 : 1; //如果data的size变化了，那么this.size就+1
             return this;
         }
 
-        // Add methods to `MapCache`.
+        // 添加方法到`MapCache`.
         MapCache.prototype.clear = mapCacheClear;
         MapCache.prototype['delete'] = mapCacheDelete;
         MapCache.prototype.get = mapCacheGet;
@@ -5949,15 +5950,17 @@
         }
 
         /**
-         * Gets the data for `map`.
-         *
+         * 从map中找出`key`所在的数据结构（根据`key`类型，会将键值对缓存到相应的数据结构）
+         *  map.__data__ = {'hash':new Hash,'string':new Hash,'map':new Map}
+         * 
          * @private
-         * @param {Object} map The map to query.
-         * @param {string} key The reference key.
-         * @returns {*} Returns the map data.
+         * @param {Object} map 要查询的map
+         * @param {string} key 参考的key
+         * @returns {*} 返回key所缓存的数据结构
          */
         function getMapData(map, key) {
             var data = map.__data__;
+            //这里之所以区分'hash'跟'string'，为了保证number类型,null和string类型的key能够正确被添加，而不是都当做string,这样key为1与key为'1'就不会被当做相同的key，可以分别缓存。
             return isKeyable(key)
                 ? data[typeof key == 'string' ? 'string' : 'hash']
                 : data.map;
