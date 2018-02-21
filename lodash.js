@@ -584,27 +584,26 @@
     }
 
     /**
-     * A specialized version of `_.includes` for arrays without support for
-     * specifying an index to search from.
+     * `_.includes`的特别版本，不支持对指定索引的搜索。
      *
      * @private
-     * @param {Array} [array] The array to inspect.
-     * @param {*} target The value to search for.
-     * @returns {boolean} Returns `true` if `target` is found, else `false`.
+     * @param {Array} [array] 要操作的数组
+     * @param {*} target 要查询的值
+     * @returns {boolean} 如果 `target`被找到，返回`true` ，否则返回 `false`.
      */
     function arrayIncludes(array, value) {
-        var length = array == null ? 0 : array.length;
+        var length = array == null ? 0 : array.length; //当且仅当length属性存在，且大于0时，才进行查找，否则直接返回false
         return !!length && baseIndexOf(array, value, 0) > -1;
     }
 
     /**
-     * This function is like `arrayIncludes` except that it accepts a comparator.
+     * 这个函数类似`arrayIncludes`，此外它接收一个比较函数
      *
      * @private
-     * @param {Array} [array] The array to inspect.
-     * @param {*} target The value to search for.
-     * @param {Function} comparator The comparator invoked per element.
-     * @returns {boolean} Returns `true` if `target` is found, else `false`.
+     * @param {Array} [array] 要处理的数组
+     * @param {*} target 要查询的值
+     * @param {Function} comparator 每个元素调用的比较器
+     * @returns {boolean} 如果`target`被找到了就返回 `true`,否则就返回`false`.
      */
     function arrayIncludesWith(array, value, comparator) {
         var index = -1,
@@ -619,13 +618,12 @@
     }
 
     /**
-     * A specialized version of `_.map` for arrays without support for iteratee
-     * shorthands.
+     * 适合于数组的，`_.map`的特别版本，不支持迭代器简写
      *
      * @private
-     * @param {Array} [array] The array to iterate over.
-     * @param {Function} iteratee The function invoked per iteration.
-     * @returns {Array} Returns the new mapped array.
+     * @param {Array} [array] 要迭代的数组
+     * @param {Function} iteratee 每次迭代调用的函数
+     * @returns {Array} 返回新的映射数组
      */
     function arrayMap(array, iteratee) {
         var index = -1,
@@ -781,22 +779,22 @@
     }
 
     /**
-     * The base implementation of `_.findIndex` and `_.findLastIndex` without
-     * support for iteratee shorthands.
+     * `_.findIndex` 和 `_.findLastIndex`的基础实现，不支持迭代简写
      *
      * @private
-     * @param {Array} array The array to inspect.
-     * @param {Function} predicate The function invoked per iteration.
-     * @param {number} fromIndex The index to search from.
-     * @param {boolean} [fromRight] Specify iterating from right to left.
-     * @returns {number} Returns the index of the matched value, else `-1`.
+     * @param {Array} array 要操作的数组
+     * @param {Function} predicate 每次迭代调用的函数
+     * @param {number} fromIndex 开始搜索的索引位置
+     * @param {boolean} [fromRight] 指定迭代方向从右边到左
+     * @returns {number} 返回被匹配的索引位置，否则返回-1
      */
     function baseFindIndex(array, predicate, fromIndex, fromRight) {
         var length = array.length,
             index = fromIndex + (fromRight ? 1 : -1);
-
+        //如果迭代方向是从右到左，那么while先确认index是否大于0，如果大于0，那么index再减1，然后进入循环体。如果index等于0，那么index再减1，然后退出循环体；
+        //如果迭代方法是从左往右，那么index先加1，在与length比较。
         while ((fromRight ? index-- : ++index < length)) {
-            if (predicate(array[index], index, array)) {
+            if (predicate(array[index], index, array)) { //如果断言成功，就返回索引
                 return index;
             }
         }
@@ -804,13 +802,13 @@
     }
 
     /**
-     * The base implementation of `_.indexOf` without `fromIndex` bounds checks.
-     *
+     * `_.indexOf`的基础实现，没有`fromIndex`边界的检查
+     * 
      * @private
-     * @param {Array} array The array to inspect.
-     * @param {*} value The value to search for.
-     * @param {number} fromIndex The index to search from.
-     * @returns {number} Returns the index of the matched value, else `-1`.
+     * @param {Array} array 要操作的值
+     * @param {*} value 要查询的值
+     * @param {number} fromIndex 要开始进行搜索的索引。
+     * @returns {number} 如果匹配，返回匹配值得索引，否则返回-1
      */
     function baseIndexOf(array, value, fromIndex) {
         return value === value
@@ -841,11 +839,11 @@
     }
 
     /**
-     * The base implementation of `_.isNaN` without support for number objects.
-     *
+     * `_.isNaN`的基础实现，不支持number objects
+     * 
      * @private
-     * @param {*} value The value to check.
-     * @returns {boolean} Returns `true` if `value` is `NaN`, else `false`.
+     * @param {*} value 要检查的值
+     * @returns {boolean} 如果`value`是`NaN`，返回`true`, 否则返回`false`.
      */
     function baseIsNaN(value) {
         return value !== value;
@@ -990,11 +988,11 @@
     }
 
     /**
-     * The base implementation of `_.unary` without support for storing metadata.
+     * `_.unary`的基本实现不支持存储元数据
      *
      * @private
-     * @param {Function} func The function to cap arguments for.
-     * @returns {Function} Returns the new capped function.
+     * @param {Function} func 要将参数限制为1个的函数
+     * @returns {Function} 返回新的函数，该函数只接收一个参数
      */
     function baseUnary(func) {
         return function (value) {
@@ -1019,12 +1017,12 @@
     }
 
     /**
-     * Checks if a `cache` value for `key` exists.
+     * 检查`cache`中是否存在`key`对应的键
      *
      * @private
-     * @param {Object} cache The cache to query.
-     * @param {string} key The key of the entry to check.
-     * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+     * @param {Object} cache 要查询的`cache`
+     * @param {string} key 要检查的键key
+     * @returns {boolean} 如果存在`key`这个键，就返回true，否则返回false
      */
     function cacheHas(cache, key) {
         return cache.has(key);
@@ -1269,17 +1267,16 @@
     }
 
     /**
-     * A specialized version of `_.indexOf` which performs strict equality
-     * comparisons of values, i.e. `===`.
-     *
+     * `_.indexOf`的特殊版本，它执行严格的相等比较，比如`===`
+     * 
      * @private
-     * @param {Array} array The array to inspect.
-     * @param {*} value The value to search for.
-     * @param {number} fromIndex The index to search from.
-     * @returns {number} Returns the index of the matched value, else `-1`.
+     * @param {Array} array 要操作的数组
+     * @param {*} value 要搜索的值
+     * @param {number} fromIndex 开始搜索的索引位置
+     * @returns {number} 如果找到匹配项，就返回索引，否则返回-1
      */
     function strictIndexOf(array, value, fromIndex) {
-        var index = fromIndex - 1,
+        var index = fromIndex - 1, //因为下面用的是前置++
             length = array.length;
 
         while (++index < length) {
@@ -1908,17 +1905,17 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates a hash object.
+         * 创建一个hash对象
          *
          * @private
          * @constructor
-         * @param {Array} [entries] The key-value pairs to cache.
+         * @param {Array} [entries] 要缓存的键值对数组，[['key1','value1'],['key2','value2']]
          */
         function Hash(entries) {
             var index = -1,
                 length = entries == null ? 0 : entries.length;
 
-            this.clear();
+            this.clear(); //清空hash，同时将size设置为0
             while (++index < length) {
                 var entry = entries[index];
                 this.set(entry[0], entry[1]);
@@ -1926,83 +1923,88 @@
         }
 
         /**
-         * Removes all key-value entries from the hash.
+         * 从hash中移除所有的键值对
          *
          * @private
          * @name clear
          * @memberOf Hash
          */
         function hashClear() {
+            //如果环境中存在原生的Object.create方法，就使用Object.create(null)创建对象，新创建的对象不继承自任何对象，没有__proto__属性。
+            //否则使用对象字面量创建空对象，此时新对象继承自Object,有__.proto__属性
             this.__data__ = nativeCreate ? nativeCreate(null) : {};
-            this.size = 0;
+            this.size = 0; //重置size为0
         }
 
         /**
-         * Removes `key` and its value from the hash.
+         * 从hash中删除属性key
          *
          * @private
          * @name delete
          * @memberOf Hash
-         * @param {Object} hash The hash to modify.
-         * @param {string} key The key of the value to remove.
-         * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+         * @param {Object} hash 要修改的hash
+         * @param {string} key 要删除的key
+         * @returns {boolean} 如果键值对被删除了，就返回true，否则返回false
          */
-        function hashDelete(key) {
+        function hashDelete(key) { //如果Hash中存在key，就使用delete删除hash上的key
             var result = this.has(key) && delete this.__data__[key];
-            this.size -= result ? 1 : 0;
+            this.size -= result ? 1 : 0; //如果删除了key，那么size就减少1，否则size不变
             return result;
         }
 
         /**
-         * Gets the hash value for `key`.
+         * 得到`key`的hash值
          *
          * @private
          * @name get
          * @memberOf Hash
-         * @param {string} key The key of the value to get.
+         * @param {string} key 要得到值的key
          * @returns {*} Returns the entry value.
          */
         function hashGet(key) {
-            var data = this.__data__;
-            if (nativeCreate) {
+            var data = this.__data__;//data是一个对象，缓存了所有的键值对
+            if (nativeCreate) { //如果环境支持Object.create方法，result等于HASH_UNDEFINED时，就返回undefined，否则直接返回result；
                 var result = data[key];
                 return result === HASH_UNDEFINED ? undefined : result;
-            }
+            }//如果不支持，就用hasOwnProperty判断data是否存在key,存在就返回 data[key]，不存在就返回undefined；
             return hasOwnProperty.call(data, key) ? data[key] : undefined;
         }
 
         /**
-         * Checks if a hash value for `key` exists.
+         * 检查是否存在`key`对应的hash值
          *
          * @private
          * @name has
          * @memberOf Hash
-         * @param {string} key The key of the entry to check.
-         * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+         * @param {string} key 要检查的键值对的键值key
+         * @returns {boolean} 如果`key`对应的值存在，就返回true，否则返回false
          */
         function hashHas(key) {
-            var data = this.__data__;
+            var data = this.__data__; //如果data是由Object.create创建的，就使用[key]判断是否存在指定的键，否则就用hasOwnProperty判断是否存在指定的键
+            //(data[key] !== undefined)之所以能够判断出data中是否存在键key，是因为在支持Obeject.create的环境中，hash的set方法将value等于undefined缓存为了HASH_UNDEFINED,而不是undefined。
             return nativeCreate ? (data[key] !== undefined) : hasOwnProperty.call(data, key);
         }
 
         /**
-         * Sets the hash `key` to `value`.
+         * 保存hash `key`对应`value`.
          *
          * @private
          * @name set
          * @memberOf Hash
-         * @param {string} key The key of the value to set.
-         * @param {*} value The value to set.
-         * @returns {Object} Returns the hash instance.
+         * @param {string} key 要保存的value对应的key
+         * @param {*} value 要保存的value
+         * @returns {Object} 返回hash实例
          */
         function hashSet(key, value) {
-            var data = this.__data__;
-            this.size += this.has(key) ? 0 : 1;
+            var data = this.__data__; //data是一个对象
+            this.size += this.has(key) ? 0 : 1; //如果键已经存在，那么size的大小不变，否则加1；
+            //如果在支持Object.create的环境中，value等于undefined，那么就保存HASH_UNDEFINED，而不是undefined;
+            // 在不支持Object.create的环境中，直接保存value。但是，在检查data中是否存在指定的key时，需要使用hasOwnProperty方法。
             data[key] = (nativeCreate && value === undefined) ? HASH_UNDEFINED : value;
             return this;
         }
 
-        // Add methods to `Hash`.
+        // 给`Hash`添加方法.
         Hash.prototype.clear = hashClear;
         Hash.prototype['delete'] = hashDelete;
         Hash.prototype.get = hashGet;
@@ -2129,11 +2131,11 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates a map cache object to store key-value pairs.
+         * 创建Map缓存对象,以存储键值对。
          *
          * @private
          * @constructor
-         * @param {Array} [entries] The key-value pairs to cache.
+         * @param {Array} [entries] 要缓存的键值对数组 eg:[['key1','value1'],['key2','value2']]
          */
         function MapCache(entries) {
             var index = -1,
@@ -2147,17 +2149,17 @@
         }
 
         /**
-         * Removes all key-value entries from the map.
+         * 从map中移除所有的键值对
          *
          * @private
          * @name clear
          * @memberOf MapCache
          */
         function mapCacheClear() {
-            this.size = 0;
-            this.__data__ = {
+            this.size = 0; //把size重置为0
+            this.__data__ = { //重置__data__
                 'hash': new Hash,
-                'map': new (Map || ListCache),
+                'map': new (Map || ListCache), //如果全局环境中有ES6的Map就使用es6的Map,否则就使用自定义的`ListCache`
                 'string': new Hash
             };
         }
@@ -2232,12 +2234,11 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         *
-         * Creates an array cache object to store unique values.
+         * 创建一个数组缓存对象来存储唯一值(以键值对的形式，缓存到Map中)。
          *
          * @private
          * @constructor
-         * @param {Array} [values] The values to cache.
+         * @param {Array} [values] 要缓存的所有值
          */
         function SetCache(values) {
             var index = -1,
@@ -2770,12 +2771,11 @@
         }
 
         /**
-         * The base implementation of methods like `_.difference` without support
-         * for excluding multiple arrays or iteratee shorthands.
-         *
+         * `_.difference`方法的基础实现，不支持排除多个数组或迭代简写
+         * 
          * @private
-         * @param {Array} array The array to inspect.
-         * @param {Array} values The values to exclude.
+         * @param {Array} array 要操作的数组
+         * @param {Array} values 要排除的值
          * @param {Function} [iteratee] The iteratee invoked per element.
          * @param {Function} [comparator] The comparator invoked per element.
          * @returns {Array} Returns the new array of filtered values.
@@ -2788,10 +2788,10 @@
                 result = [],
                 valuesLength = values.length;
 
-            if (!length) {
+            if (!length) { //如果要操作的数组是空数组，返回空数组
                 return result;
             }
-            if (iteratee) {
+            if (iteratee) { //这里对values数组的每个值进行了迭代处理
                 values = arrayMap(values, baseUnary(iteratee));
             }
             if (comparator) {
@@ -6353,17 +6353,17 @@
         }
 
         /**
-         * Checks if `value` is suitable for use as unique object key.
+         * 检查`value`是否适合做为对象唯一的键
          *
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is suitable, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果 `value`是适合的，就返回`true`, 否则返回`false`.
          */
         function isKeyable(value) {
             var type = typeof value;
             return (type == 'string' || type == 'number' || type == 'symbol' || type == 'boolean')
-                ? (value !== '__proto__')
-                : (value === null);
+                ? (value !== '__proto__') //字符串'__proto__'不适合做对象的键
+                : (value === null);  //null的typeof返回object，但是它适合做对象的键
         }
 
         /**
@@ -6944,20 +6944,19 @@
         }
 
         /**
-         * Creates an array of `array` values not included in the other given arrays
-         * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
-         * for equality comparisons. The order and references of result values are
-         * determined by the first array.
+         * 创建一个数组，该数组中的值是`array`中不包含在其他给定数组中的所有值。
+         * 使用[`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
+         * 做相等比较.结果中所以值的顺序和引用都由第一个数组决定的。
          *
-         * **Note:** Unlike `_.pullAll`, this method returns a new array.
+         * **注意:** 不想 `_.pullAll`, 这个方法会返回新数组
          *
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Array
-         * @param {Array} array The array to inspect.
-         * @param {...Array} [values] The values to exclude.
-         * @returns {Array} Returns the new array of filtered values.
+         * @param {Array} array 要检查的数组
+         * @param {...Array} [values] 要排除的值(Array会扁平化一层，因此支持传多个数组)
+         * @returns {Array} 返回一个已过滤值得新数组
          * @see _.without, _.xor
          * @example
          *
@@ -11352,15 +11351,15 @@
         }
 
         /**
-         * This method is like `_.isArrayLike` except that it also checks if `value`
-         * is an object.
+         * 这个方式类似`_.isArrayLike` 除此之外它还检查`value`是否是对象,在
+         * `_.isArrayLike`的基础上排除了字符串
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is an array-like object,
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果`value`是一个类数组对象,那么就返回`true`，否则返回`false`
          *  else `false`.
          * @example
          *
@@ -11713,7 +11712,7 @@
          * @since 4.0.0
          * @category Lang
          * @param {*} value 要检查的value
-         * @returns {boolean} 如果 value 是一个有效长度，那么返回 true，否则返回 false
+         * @returns {boolean} 如果value是一个有效长度，那么返回 true，否则返回 false
          * @example
          *
          * _.isLength(3);
