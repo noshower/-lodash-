@@ -6983,6 +6983,8 @@
          * // => [1]
          */
         var difference = baseRest(function (array, values) {
+            //values是difference实参中除了array之外的所有剩余参数
+            //因此，difference方法接受多个要过滤的数组
             return isArrayLikeObject(array)
                 ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject, true))
                 : [];
