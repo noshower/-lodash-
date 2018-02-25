@@ -2289,11 +2289,11 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates a stack cache object to store key-value pairs.
-         *
+         * 创建一个堆栈缓存对象用来储存键值对
+         * 
          * @private
          * @constructor
-         * @param {Array} [entries] The key-value pairs to cache.
+         * @param {Array} [entries] 要缓存的键值对
          */
         function Stack(entries) {
             var data = this.__data__ = new ListCache(entries);
@@ -2301,7 +2301,7 @@
         }
 
         /**
-         * Removes all key-value entries from the stack.
+         * 从堆栈中删除所有键值对。
          *
          * @private
          * @name clear
@@ -2313,13 +2313,13 @@
         }
 
         /**
-         * Removes `key` and its value from the stack.
+         * 从堆栈中删除指定`key`和它的value
          *
          * @private
          * @name delete
          * @memberOf Stack
-         * @param {string} key The key of the value to remove.
-         * @returns {boolean} Returns `true` if the entry was removed, else `false`.
+         * @param {string} key 要移除值的`key`
+         * @returns {boolean} 如果键值对已经被移除了，就返回`true`, 否则返回`false`.
          */
         function stackDelete(key) {
             var data = this.__data__,
@@ -2330,58 +2330,62 @@
         }
 
         /**
-         * Gets the stack value for `key`.
-         *
+         * 获取`key`的堆栈值
+         * 
          * @private
          * @name get
          * @memberOf Stack
-         * @param {string} key The key of the value to get.
-         * @returns {*} Returns the entry value.
+         * @param {string} key 要获取值的key
+         * @returns {*} 返回结果
          */
         function stackGet(key) {
             return this.__data__.get(key);
         }
 
         /**
-         * Checks if a stack value for `key` exists.
+         * 检查一个堆栈的`key`是否存在
          *
          * @private
          * @name has
          * @memberOf Stack
-         * @param {string} key The key of the entry to check.
-         * @returns {boolean} Returns `true` if an entry for `key` exists, else `false`.
+         * @param {string} key 要检查的key
+         * @returns {boolean} 如果一对键值对的`key`存在，就返回`true`, 否则返回`false`.
          */
         function stackHas(key) {
             return this.__data__.has(key);
         }
 
         /**
-         * Sets the stack `key` to `value`.
+         * 设置堆栈的`key`和`value`
          *
          * @private
          * @name set
          * @memberOf Stack
-         * @param {string} key The key of the value to set.
-         * @param {*} value The value to set.
-         * @returns {Object} Returns the stack cache instance.
+         * @param {string} key 要设置的value的`key`
+         * @param {*} value 要设置的`value`
+         * @returns {Object} 返回堆栈缓存的实例
          */
         function stackSet(key, value) {
             var data = this.__data__;
             if (data instanceof ListCache) {
-                var pairs = data.__data__;
+                var pairs = data.__data__; //pairs是个二维数组。ListCache的数据都缓存在数组中
+                //当环境中不存在原生的Map数据结构或者数组成都小于（LARGE_ARRAY_SIZE - 1），还是用数组缓存数据
                 if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
                     pairs.push([key, value]);
                     this.size = ++data.size;
                     return this;
                 }
+                //如果环境中存在原生的Map数据结构或者数组长度达到了最大限制，就使用MapCache缓存数据
+                // MapCache并不保证一定安全，因为如果环境中不存在Map，MapCache的map类型的数据结构是ListCache的实例，仍旧有数组最大长度的限制
                 data = this.__data__ = new MapCache(pairs);
             }
+            //几种数据结构的接口都是统一的
             data.set(key, value);
             this.size = data.size;
             return this;
         }
 
-        // Add methods to `Stack`.
+        // 添加方法到`Stack`.
         Stack.prototype.clear = stackClear;
         Stack.prototype['delete'] = stackDelete;
         Stack.prototype.get = stackGet;
