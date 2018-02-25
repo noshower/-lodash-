@@ -14,7 +14,7 @@
     /** Used as the semantic version number. */
     var VERSION = '4.17.5';
 
-    /** Used as the size to enable large array optimizations. */
+    /** 需要对数组进行优化的最大长度限制 */
     var LARGE_ARRAY_SIZE = 200;
 
     /** Error message constants. */
@@ -2238,7 +2238,7 @@
 
         /**
          * 创建一个数组缓存对象来存储唯一值(Set的api与ES6原生set的api保持一致）。
-         * SetCache看起来只缓存值，但是也是已键值对的形式缓存，只不过键值对的值统一都是`HASH_UNDEFINED`
+         * 注：SetCache看起来只缓存值，但是也是已键值对的形式缓存，只不过键值对的值统一都是`HASH_UNDEFINED`
          *
          * @private
          * @constructor
@@ -2369,13 +2369,13 @@
             var data = this.__data__;
             if (data instanceof ListCache) {
                 var pairs = data.__data__; //pairs是个二维数组。ListCache的数据都缓存在数组中
-                //当环境中不存在原生的Map数据结构或者数组成都小于（LARGE_ARRAY_SIZE - 1），还是用数组缓存数据
+                //当环境中不存在原生的Map数据结构或者数组长度小于199，还是用数组缓存数据
                 if (!Map || (pairs.length < LARGE_ARRAY_SIZE - 1)) {
                     pairs.push([key, value]);
                     this.size = ++data.size;
                     return this;
                 }
-                //如果环境中存在原生的Map数据结构或者数组长度达到了最大限制，就使用MapCache缓存数据
+                //如果环境中存在原生的Map数据结构或者数组长度大于等于200（这时候需要对数组进行优化），就使用MapCache缓存数据
                 // MapCache并不保证一定安全，因为如果环境中不存在Map，MapCache的map类型的数据结构是ListCache的实例，仍旧有数组最大长度的限制
                 data = this.__data__ = new MapCache(pairs);
             }
@@ -2784,9 +2784,9 @@
          * @private
          * @param {Array} array 要操作的数组
          * @param {Array} values 要排除的值
-         * @param {Function} [iteratee] The iteratee invoked per element.
-         * @param {Function} [comparator] The comparator invoked per element.
-         * @returns {Array} Returns the new array of filtered values.
+         * @param {Function} [iteratee] array中每个元素调用的迭代函数
+         * @param {Function} [comparator] values中每个元素调用的比较函数，跟循环中array的某个元素比较
+         * @returns {Array} 返回过滤后的新数组
          */
         function baseDifference(array, values, iteratee, comparator) {
             var index = -1,
@@ -2806,10 +2806,10 @@
                 includes = arrayIncludesWith;
                 isCommon = false;
             }
-            else if (values.length >= LARGE_ARRAY_SIZE) {
+            else if (values.length >= LARGE_ARRAY_SIZE) { //如果values数组的长度大于等于200，需要对它进行优化。
                 includes = cacheHas;
                 isCommon = false;
-                values = new SetCache(values);
+                values = new SetCache(values);  //不再使用数组，转为别的数据结构。
             }
             outer:
             while (++index < length) {
@@ -2817,15 +2817,19 @@
                     computed = iteratee == null ? value : iteratee(value);
 
                 value = (comparator || value !== 0) ? value : 0;
+                //如果computed是NaN，就要到else if中去判断
                 if (isCommon && computed === computed) {
+                    //这里是很普通的判断方式，values依旧是数组，不需要comparator
                     var valuesIndex = valuesLength;
                     while (valuesIndex--) {
                         if (values[valuesIndex] === computed) {
-                            continue outer;
+                            //continue与label结合使用，
+                            //这里的意思是，values中匹配到了computed值，就跳出当前循环，继续外围的循环。
+                            continue outer; 
                         }
                     }
-                    result.push(value);
-                }
+                    result.push(value); //把array中的最初值加到结果数组中，而不是计算后的值。
+                } //这里的includes函数可能是arrayIncludesWith和cacheHas，看values的数据结构类型
                 else if (!includes(values, computed, comparator)) {
                     result.push(value);
                 }
