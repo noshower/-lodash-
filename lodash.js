@@ -457,10 +457,10 @@
      * 更快的apply，理由：apply比call慢多了
      * 
      * @private
-     * @param {Function} func The function to invoke.
-     * @param {*} thisArg The `this` binding of `func`.
-     * @param {Array} args The arguments to invoke `func` with.
-     * @returns {*} Returns the result of `func`.
+     * @param {Function} func 要调用的函数
+     * @param {*} thisArg 绑定到`func`的`this`.
+     * @param {Array} args  调用`func`时要用到的参数
+     * @returns {*} 返回`func`.
      */
     function apply(func, thisArg, args) {
         switch (args.length) {
@@ -1481,7 +1481,10 @@
             spreadableSymbol = Symbol ? Symbol.isConcatSpreadable : undefined,
             symIterator = Symbol ? Symbol.iterator : undefined,
             symToStringTag = Symbol ? Symbol.toStringTag : undefined;
-
+        /** 
+         * `Object.defineProperty`方法会直接在一个对象上定义一个新属性，或者修改一个对象的现有属性， 并返回这个对象。
+         * 如果环境不支持Object.defineProperty方法，defineProperty为`undefined`
+         */
         var defineProperty = (function () {
             try {
                 var func = getNative(Object, 'defineProperty');
@@ -3948,14 +3951,15 @@
         }
 
         /**
-         * The base implementation of `_.rest` which doesn't validate or coerce arguments.
+         * `_.rest`的基本实现,不会验证或强制参数。
          *
          * @private
-         * @param {Function} func The function to apply a rest parameter to.
-         * @param {number} [start=func.length-1] The start position of the rest parameter.
-         * @returns {Function} Returns the new function.
+         * @param {Function} func 要应用`rest parameter`的函数 
+         * @param {number} [start=func.length-1] `rest parameter`开始的位置
+         * @returns {Function} 返回新函数
          */
         function baseRest(func, start) {
+            //这里setToString函数的目的是给func设置toString方法，toString返回返回func的字符串表示
             return setToString(overRest(func, start, identity), func + '');
         }
 
@@ -4037,18 +4041,19 @@
         };
 
         /**
-         * The base implementation of `setToString` without support for hot loop shorting.
+         * `setToString`的基本实现，不支持`hot loop shorting`
+         * baseSetToString()返回`func`
          *
          * @private
-         * @param {Function} func The function to modify.
-         * @param {Function} string The `toString` result.
-         * @returns {Function} Returns `func`.
+         * @param {Function} func 要修改的函数
+         * @param {Function} string `toString`的结果.
+         * @returns {Function} 返回 `func`.
          */
         var baseSetToString = !defineProperty ? identity : function (func, string) {
             return defineProperty(func, 'toString', {
                 'configurable': true,
                 'enumerable': false,
-                'value': constant(string),
+                'value': constant(string), //value的值是一个返回string的函数
                 'writable': true
             });
         };
@@ -6591,15 +6596,15 @@
         }
 
         /**
-         * A specialized version of `baseRest` which transforms the rest array.
-         *
+         * `baseRest`的特殊版本，用于将`rest parameter`转换为数组
          * @private
-         * @param {Function} func The function to apply a rest parameter to.
-         * @param {number} [start=func.length-1] The start position of the rest parameter.
-         * @param {Function} transform The rest array transform.
-         * @returns {Function} Returns the new function.
+         * @param {Function} func 需要应用`rest parameter`的函数
+         * @param {number} [start=func.length-1] `rest parameter`开始的位置
+         * @param {Function} transform 转换`rest parameter`
+         * @returns {Function} 返回新函数,新函数支持`rest parameter`
          */
         function overRest(func, start, transform) {
+            //start默认取值为func形参的个数减1
             start = nativeMax(start === undefined ? (func.length - 1) : start, 0);
             return function () {
                 var args = arguments,
@@ -6615,7 +6620,7 @@
                 while (++index < start) {
                     otherArgs[index] = args[index];
                 }
-                otherArgs[start] = transform(array);
+                otherArgs[start] = transform(array); //func函数第(start+1)个形参接收`rest parameter`
                 return apply(func, this, otherArgs);
             };
         }
@@ -6683,12 +6688,14 @@
         };
 
         /**
-         * Sets the `toString` method of `func` to return `string`.
+         * 设置`func`的`toString`方法,该方法返回`string`
+         * `setToString`在`baseSetToString`的基础上，
+         * 增加了'如果连续调用`setToString`都在在16毫秒内，当它调用的次数大于等于800时，不再设置`func`的`toString`属性';。
          *
          * @private
-         * @param {Function} func The function to modify.
-         * @param {Function} string The `toString` result.
-         * @returns {Function} Returns `func`.
+         * @param {Function} func 要修改的函数
+         * @param {Function} string `toString`的结果
+         * @returns {Function}  返回`func`.
          */
         var setToString = shortOut(baseSetToString);
 
@@ -6708,13 +6715,11 @@
         }
 
         /**
-         * Creates a function that'll short out and invoke `identity` instead
-         * of `func` when it's called `HOT_COUNT` or more times in `HOT_SPAN`
-         * milliseconds.
+         * 创建一个函数.如果连续调用间隔都在在16毫秒内，当它调用的次数大于等于800时，将调用`identity`而不是`func`
          *
          * @private
-         * @param {Function} func The function to restrict.
-         * @returns {Function} Returns the new shortable function.
+         * @param {Function} func 要限制的函数
+         * @returns {Function} 返回新函数
          */
         function shortOut(func) {
             var count = 0,
@@ -6722,11 +6727,11 @@
 
             return function () {
                 var stamp = nativeNow(),
-                    remaining = HOT_SPAN - (stamp - lastCalled);
+                    remaining = HOT_SPAN - (stamp - lastCalled); //计算每次调用间隔是否在16毫秒内
 
                 lastCalled = stamp;
-                if (remaining > 0) {
-                    if (++count >= HOT_COUNT) {
+                if (remaining > 0) { //前后两次调用间隔小于等于16时，count++
+                    if (++count >= HOT_COUNT) {//每次调用间隔都在在16毫秒内，当它调用的次数大于等于800时，返回arguments[0]，此时该函数相当于`identity`函数
                         return arguments[0];
                     }
                 } else {
@@ -10800,20 +10805,17 @@
         });
 
         /**
-         * Creates a function that invokes `func` with the `this` binding of the
-         * created function and arguments from `start` and beyond provided as
-         * an array.
+         * 创建一个函数，调用func时，this绑定到创建的新函数，并且start之后的参数作为数组传入。
          *
-         * **Note:** This method is based on the
-         * [rest parameter](https://mdn.io/rest_parameters).
+         * **注意:** 这个方法是以[rest parameter](https://mdn.io/rest_parameters)为基础的
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Function
-         * @param {Function} func The function to apply a rest parameter to.
-         * @param {number} [start=func.length-1] The start position of the rest parameter.
-         * @returns {Function} Returns the new function.
+         * @param {Function} func 要应用`rest parameter`的函数 
+         * @param {number} [start=func.length-1] `rest parameter`开始的位置
+         * @returns {Function} 返回一个新函数
          * @example
          *
          * var say = _.rest(function(what, names) {
@@ -10825,9 +10827,10 @@
          * // => 'hello fred, barney, & pebbles'
          */
         function rest(func, start) {
-            if (typeof func != 'function') {
+            if (typeof func != 'function') { //func必须是函数
                 throw new TypeError(FUNC_ERROR_TEXT);
             }
+            //start默认取值为func形参的个数减1,由baseRest函数源码可知
             start = start === undefined ? start : toInteger(start);
             return baseRest(func, start);
         }
@@ -15402,14 +15405,14 @@
         }
 
         /**
-         * Creates a function that returns `value`.
+         * 创建一个返回`value`的函数。
          *
          * @static
          * @memberOf _
          * @since 2.4.0
          * @category Util
-         * @param {*} value The value to return from the new function.
-         * @returns {Function} Returns the new constant function.
+         * @param {*} value 要从新函数返回的值。
+         * @returns {Function} 返回一个返回常量的函数
          * @example
          *
          * var objects = _.times(2, _.constant({ 'a': 1 }));
@@ -15498,14 +15501,14 @@
         var flowRight = createFlow(true);
 
         /**
-         * This method returns the first argument it receives.
+         * 这个方法返回它接收到的第一个参数
          *
          * @static
          * @since 0.1.0
          * @memberOf _
          * @category Util
-         * @param {*} value Any value.
-         * @returns {*} Returns `value`.
+         * @param {*} value 任何值.
+         * @returns {*} 返回`value`.
          * @example
          *
          * var object = { 'a': 1 };
