@@ -1514,6 +1514,7 @@
             nativeIsBuffer = Buffer ? Buffer.isBuffer : undefined,
             nativeIsFinite = context.isFinite,
             nativeJoin = arrayProto.join,
+            //nativeKeys避免了null和undefined调用Object.keys时，报错。这里使用Object函数强制将参数转为对象
             nativeKeys = overArg(Object.keys, Object),
             nativeMax = Math.max,
             nativeMin = Math.min,
@@ -2408,23 +2409,24 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Creates an array of the enumerable property names of the array-like `value`.
+         * 创建一个包含类数组`value`的所有可枚举属性名的数组
          *
          * @private
-         * @param {*} value The value to query.
-         * @param {boolean} inherited Specify returning inherited property names.
-         * @returns {Array} Returns the array of property names.
+         * @param {*} value 要查询的value
+         * @param {boolean} inherited 指定返回继承的属性名称。
+         * @returns {Array} 返回包含属性名的数组
          */
         function arrayLikeKeys(value, inherited) {
             var isArr = isArray(value),
                 isArg = !isArr && isArguments(value),
                 isBuff = !isArr && !isArg && isBuffer(value),
                 isType = !isArr && !isArg && !isBuff && isTypedArray(value),
-                skipIndexes = isArr || isArg || isBuff || isType,
-                result = skipIndexes ? baseTimes(value.length, String) : [],
+                skipIndexes = isArr || isArg || isBuff || isType, //skipIndexes变量表示索引会不会跳跃,比如数组的各个元素不一定是连续的
+                //如果value的索引是会跳跃的，就根据value.length属性，创建一个包含0到length-1的字符串的数组。比如length等于3，result就等于['1','2','3']
+                result = skipIndexes ? baseTimes(value.length, String) : [], 
                 length = result.length;
-
-            for (var key in value) {
+            //for...in 并不能正确遍历稀疏数组的每个索引，因此这个for...in忽略了索引会跳跃的value的索引。
+            for (var key in value) { //for ... in 会返回继承过来的可枚举属性，根据inherited来判断是否需要包含来自继承的可枚举属性
                 if ((inherited || hasOwnProperty.call(value, key)) &&
                     !(skipIndexes && (
                         // Safari 9 has enumerable `arguments.length` in strict mode.
@@ -2433,7 +2435,7 @@
                         (isBuff && (key == 'offset' || key == 'parent')) ||
                         // PhantomJS 2 has enumerable non-index properties on typed arrays.
                         (isType && (key == 'buffer' || key == 'byteLength' || key == 'byteOffset')) ||
-                        // Skip index properties.
+                        //这里去掉了索引会跳跃的value的索引，避免索引重复添加
                         isIndex(key, length)
                     ))) {
                     result.push(key);
@@ -2681,7 +2683,7 @@
                     return cloneBuffer(value, isDeep);//cloneBuffer支持浅拷贝和深拷贝
                 }
                 if (tag == objectTag || tag == argsTag || (isFunc && !object)) {
-                    //由这里可知，value是函数的话，克隆的结果是{}
+                    //由这里可知，value是函数的话，克隆的结果是{}。
                     result = (isFlat || isFunc) ? {} : initCloneObject(value);
                     if (!isDeep) {
                         return isFlat
@@ -3517,18 +3519,28 @@
         }
 
         /**
-         * The base implementation of `_.keys` which doesn't treat sparse arrays as dense.
-         *
+         * `_.keys`的基本实现，不会将稀疏数组视为密集数组(稀疏数组就是没有从0开始的连续索引的数组)
+         * 使用baseKeys方法，稀疏数组的属性名数组是不连续的属性名。比如:
+         * 
+         *  var a = Array(3); 
+         *  a[1] = 'noshower'; //a是稀疏数组
+         *  baseKeys(a)的结果为['1']
+         *  
+         *  a[0] = 'ha';
+         *  a[2] = 'wa'; //此时a是密集数组
+         *  baseKeys(a)的结果为['0','1','2']
+         * 
          * @private
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of property names.
+         * @param {Object} object 要查询的object
+         * @returns {Array} 返回包含属性名的数组
          */
         function baseKeys(object) {
-            if (!isPrototype(object)) {
+            if (!isPrototype(object)) { // 如果object不是原型，就使用Object.keys获取属性名的数组
                 return nativeKeys(object);
             }
             var result = [];
             for (var key in Object(object)) {
+                //在重写原型对象的情况下，'constructor'属性可枚举的，这里将可枚举的'constructor'属性排除了
                 if (hasOwnProperty.call(object, key) && key != 'constructor') {
                     result.push(key);
                 }
@@ -3962,7 +3974,9 @@
 
         /**
          * `_.rest`的基本实现,不会验证或强制参数。
-         *
+         * 
+         *  目的让func支持`rest parameter`
+         * 
          * @private
          * @param {Function} func 要应用`rest parameter`的函数 
          * @param {number} [start=func.length-1] `rest parameter`开始的位置
@@ -4799,7 +4813,7 @@
         }
 
         /**
-         * Copies properties of `source` to `object`.
+         * 拷贝`source`对象的属性到`object`对象.
          *
          * @private
          * @param {Object} source The object to copy properties from.
@@ -4876,11 +4890,11 @@
         }
 
         /**
-         * Creates a function like `_.assign`.
+         * 创建一个类似`_.assign`的函数.
          *
          * @private
-         * @param {Function} assigner The function to assign values.
-         * @returns {Function} Returns the new assigner function.
+         * @param {Function} assigner 要分配值的函数
+         * @returns {Function} 返回新的分配函数。
          */
         function createAssigner(assigner) {
             return baseRest(function (object, sources) {
@@ -4888,17 +4902,20 @@
                     length = sources.length,
                     customizer = length > 1 ? sources[length - 1] : undefined,
                     guard = length > 2 ? sources[2] : undefined;
-
+                //像_.assignInWith的assigner和_.assignWith的assigner方法都接收四个参数，第四个为customizer
+                //只有assigner函数的形参个数大于3，且最后一个实参是函数的时候，customizer才是函数
                 customizer = (assigner.length > 3 && typeof customizer == 'function')
-                    ? (length-- , customizer)
+                    ? (length-- , customizer) //这里使用小括号执行多个表达式，并返回customizer
                     : undefined;
-
+                //eg: _.partialRight(_.assignWith, customizer);_.assignWith在一个迭代器中执行，
+                //因为迭代器会接收value,key,object，在这里sources中会存在value,key,object,customizer四个
+                //迭代器只需要source中的value，和customizer，因此如果是迭代器调用，length会被设置为1.
                 if (guard && isIterateeCall(sources[0], sources[1], guard)) {
-                    customizer = length < 3 ? undefined : customizer;
+                    customizer = length < 3 ? undefined : customizer; //因为前面可能已经减了1，所以这里是length<3
                     length = 1;
                 }
                 object = Object(object);
-                while (++index < length) {
+                while (++index < length) { //如果是迭代器调用，只循环一次，只要sources中的第一个元素，即迭代中的value值
                     var source = sources[index];
                     if (source) {
                         assigner(object, source, index, customizer);
@@ -6233,7 +6250,7 @@
         }
 
         /**
-         * 初始化一个对象克隆
+         * 初始化一个对象克隆，可能会继承object的原型
          *
          * @private
          * @param {Object} object 要克隆的对象
@@ -6617,6 +6634,8 @@
 
         /**
          * `baseRest`的特殊版本，用于将`rest parameter`转换为数组
+         * 
+         * 目的让func支持`rest parameter`
          * @private
          * @param {Function} func 需要应用`rest parameter`的函数
          * @param {number} [start=func.length-1] `rest parameter`开始的位置
@@ -11366,6 +11385,9 @@
         /**
          * 检查value是否是类数组。如果value不是一个函数，且有它length属性，length属性值是一个大于等于
          * 0且小于等于`Number.MAX_SAFE_INTEGER`的整数，那么value就被认为是一个类数组。
+         * 
+         * 类数组有：Array,arguments,string,TypedArray,Buffer和有length属性的对象
+         * 
          * @static
          * @memberOf _
          * @since 4.0.0
@@ -12624,20 +12646,17 @@
         /*------------------------------------------------------------------------*/
 
         /**
-         * Assigns own enumerable string keyed properties of source objects to the
-         * destination object. Source objects are applied from left to right.
-         * Subsequent sources overwrite property assignments of previous sources.
-         *
-         * **Note:** This method mutates `object` and is loosely based on
-         * [`Object.assign`](https://mdn.io/Object/assign).
+         * 分配源对象的可枚举属性到目标对象上。 源对象的应用是从左到右，随后的源对象的属性会覆盖上一个对象的属性。
+         * 
+         * **注意:** 这方法会改变`object`和基于[`Object.assign`](https://mdn.io/Object/assign)实现的.
          *
          * @static
          * @memberOf _
          * @since 0.10.0
          * @category Object
-         * @param {Object} object The destination object.
-         * @param {...Object} [sources] The source objects.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {...Object} [sources] 源对象，可以有多个
+         * @returns {Object} 返回对象`object`.
          * @see _.assignIn
          * @example
          *
@@ -12732,6 +12751,10 @@
          * // => { 'a': 1, 'b': 2 }
          */
         var assignInWith = createAssigner(function (object, source, srcIndex, customizer) {
+            //这里assigner之所以定义了四个形参，但第三个形参并没有用，主要是因为为了使createAssigner方法内的assigner函数调用代码能够共用。
+            //_.merge方法中createAssigner方法的assigner函数接收三个参数（object, source, srcIndex）
+            //为了能够区分(object, source, customizer)与（object, source, srcIndex），传入的assigner函数的
+            //形参才定义了四个，第三个形参和_.merge中的assigner函数的形参相同。
             copyObject(source, keysIn(source), object, customizer);
         });
 
@@ -12764,6 +12787,10 @@
          * // => { 'a': 1, 'b': 2 }
          */
         var assignWith = createAssigner(function (object, source, srcIndex, customizer) {
+            //这里assigner之所以定义了四个形参，但第三个形参并没有用，主要是因为为了使createAssigner方法内的assigner函数调用代码能够共用。
+            //_.merge方法中createAssigner方法的assigner函数接收三个参数（object, source, srcIndex）
+            //为了能够区分(object, source, customizer)与（object, source, srcIndex），传入的assigner函数的
+            //形参才定义了四个，第三个形参和_.merge中的assigner函数的形参相同。
             copyObject(source, keys(source), object, customizer);
         });
 
@@ -13339,18 +13366,17 @@
         var invoke = baseRest(baseInvoke);
 
         /**
-         * Creates an array of the own enumerable property names of `object`.
+         * 创建一个包含`object`的自身可枚举属性名称的数组。
          *
-         * **Note:** Non-object values are coerced to objects. See the
-         * [ES spec](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
-         * for more details.
+         * **注意:** 非对象的值会被强制转换为对象. 查看 
+         * [ES spec](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)了解详情
          *
          * @static
          * @since 0.1.0
          * @memberOf _
          * @category Object
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of property names.
+         * @param {Object} object 要查询的object
+         * @returns {Array} 返回包含属性名的数组
          * @example
          *
          * function Foo() {
