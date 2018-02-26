@@ -1180,12 +1180,12 @@
     }
 
     /**
-     * Creates a unary function that invokes `func` with its argument transformed.
-     *
+     * 创建一个一元函数，`arg`转换后调用`func`
+     * 
      * @private
-     * @param {Function} func The function to wrap.
-     * @param {Function} transform The argument transform.
-     * @returns {Function} Returns the new function.
+     * @param {Function} func 要包装的函数
+     * @param {Function} transform 参数转换函数
+     * @returns {Function} 返回一个新函数
      */
     function overArg(func, transform) {
         return function (arg) {
@@ -1475,6 +1475,14 @@
             Uint8Array = context.Uint8Array,
             /** Buffer.allocUnsafe分配一个大小为`size`字节的新建的`Buffer` */
             allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined,
+            /**
+             * getPrototype函数支持传入undefined和null，但是返回undefined和null的原型却是Object.prototype
+             * 这里使用`Object`构造函数创建一个对象包装器。 
+             * Object构造函数为给定值创建一个对象包装器。如果给定值是 null 或 undefined，将会创建并返回一个空对象，否则，将返回一个与给定值对应类型的对象。
+             * 当以非构造函数形式被调用时，Object 等同于 new Object()。
+             * Object.getPrototypeOf不支持传入undefined和null。这里使用Object()构造函数返回任意值的包装对象
+             * 
+            */
             getPrototype = overArg(Object.getPrototypeOf, Object),
             objectCreate = Object.create,
             propertyIsEnumerable = objectProto.propertyIsEnumerable,
@@ -1672,25 +1680,26 @@
         }
 
         /**
-         * The base implementation of `_.create` without support for assigning
-         * properties to the created object.
+         * `_.create`的基础实现，不支持为新创建的对象分配属性
          *
          * @private
-         * @param {Object} proto The object to inherit from.
-         * @returns {Object} Returns the new object.
+         * @param {Object} proto 要继承的对象
+         * @returns {Object} 返回新对象
          */
         var baseCreate = (function () {
             function object() { }
             return function (proto) {
-                if (!isObject(proto)) {
+                if (!isObject(proto)) { //如果proto不是对象，不适合做原型，因此直接返回空对象
                     return {};
                 }
-                if (objectCreate) {
+                if (objectCreate) { 
+                    //使用原生的Object.create创建对象
                     return objectCreate(proto);
                 }
+                //不支持Object.create的情况下，手动指定object构造函数的原型对象
                 object.prototype = proto;
                 var result = new object;
-                object.prototype = undefined;
+                object.prototype = undefined; //取消object.prototype对proto的引用
                 return result;
             };
         }());
@@ -2669,9 +2678,10 @@
                     isFunc = tag == funcTag || tag == genTag;//根据tag判断value是不是函数，包括ES6的Generator函数
                 
                 if (isBuffer(value)) { //如果value 是 Buffer 对象 
-                    return cloneBuffer(value, isDeep);
+                    return cloneBuffer(value, isDeep);//cloneBuffer支持浅拷贝和深拷贝
                 }
                 if (tag == objectTag || tag == argsTag || (isFunc && !object)) {
+                    //由这里可知，value是函数的话，克隆的结果是{}
                     result = (isFlat || isFunc) ? {} : initCloneObject(value);
                     if (!isDeep) {
                         return isFlat
@@ -6223,11 +6233,11 @@
         }
 
         /**
-         * Initializes an object clone.
+         * 初始化一个对象克隆
          *
          * @private
-         * @param {Object} object The object to clone.
-         * @returns {Object} Returns the initialized clone.
+         * @param {Object} object 要克隆的对象
+         * @returns {Object} 返回初始化的克隆
          */
         function initCloneObject(object) {
             return (typeof object.constructor == 'function' && !isPrototype(object))
@@ -6436,25 +6446,27 @@
         var isMaskable = coreJsData ? isFunction : stubFalse;
 
         /**
-         * Checks if `value` is likely a prototype object.
-         *
+         * 检查`value`是否可能是原型对象。
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is a prototype, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果`value`是一个原型，就返回`true`， 否则返回`false`.
          */
         function isPrototype(value) {
-            var Ctor = value && value.constructor,
+                proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;//如果value不是原型，proto = objectProto
+                proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;//如果value不是原型，proto = objectProto
+            // 如果value是实例对象，有一个constructor属性（来自原型），指向构造函数。构造函数有个指针指向构造函数的原型，此时value 不等于 proto。
+            var Ctor = value && value.constructor, //如果value是原型，有一个constructor属性，指向构造函数。构造函数有个指针指向原型value，此时value 等于 proto。
                 proto = (typeof Ctor == 'function' && Ctor.prototype) || objectProto;
-
+                
             return value === proto;
         }
 
         /**
          *  检查value是否适合严格的相等比较，'==='
+         *  所有对象都不适合'==='
          * @private
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` if suitable for strict
-         *  equality comparisons, else `false`.
+         * @param {*} value 要检查的值
+         * @returns {boolean} 如果 `value`适合严格相等比较，就返回`true`，否则返回`false`
          */
         function isStrictComparable(value) {
             // value === value 是为了排除 NaN，NaN不适合严格相等比较。
@@ -12775,16 +12787,15 @@
         var at = flatRest(baseAt);
 
         /**
-         * Creates an object that inherits from the `prototype` object. If a
-         * `properties` object is given, its own enumerable string keyed properties
-         * are assigned to the created object.
+         * 创建一个继承`prototype`对象的对象。如果提供了`properties`对象，
+         * 它的可枚举字符串属性会被分配到创建的对象上。
          *
          * @static
          * @memberOf _
          * @since 2.3.0
          * @category Object
-         * @param {Object} prototype The object to inherit from.
-         * @param {Object} [properties] The properties to assign to the object.
+         * @param {Object} prototype 要继承的对象
+         * @param {Object} [properties] 待分配给新创建的对象的属性。
          * @returns {Object} Returns the new object.
          * @example
          *
@@ -12810,6 +12821,7 @@
          */
         function create(prototype, properties) {
             var result = baseCreate(prototype);
+            //当properties对象为undefined或null时，直接返回result
             return properties == null ? result : baseAssign(result, properties);
         }
 
