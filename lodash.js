@@ -30,7 +30,7 @@
     /** Used as the internal argument placeholder. */
     var PLACEHOLDER = '__lodash_placeholder__';
 
-    /** Used to compose bitmasks for cloning. */
+    /** 用于组成克隆的位掩码 */
     var CLONE_DEEP_FLAG = 1,
         CLONE_FLAT_FLAG = 2,
         CLONE_SYMBOLS_FLAG = 4;
@@ -1473,6 +1473,7 @@
         var Buffer = moduleExports ? context.Buffer : undefined,
             Symbol = context.Symbol,
             Uint8Array = context.Uint8Array,
+            /** Buffer.allocUnsafe分配一个大小为`size`字节的新建的`Buffer` */
             allocUnsafe = Buffer ? Buffer.allocUnsafe : undefined,
             getPrototype = overArg(Object.getPrototypeOf, Object),
             objectCreate = Object.create,
@@ -2631,22 +2632,22 @@
          * traversed objects.
          *
          * @private
-         * @param {*} value The value to clone.
-         * @param {boolean} bitmask The bitmask flags.
+         * @param {*} value 要克隆的值
+         * @param {boolean} bitmask 位掩码标志
          *  1 - Deep clone
          *  2 - Flatten inherited properties
          *  4 - Clone symbols
-         * @param {Function} [customizer] The function to customize cloning.
-         * @param {string} [key] The key of `value`.
-         * @param {Object} [object] The parent object of `value`.
+         * @param {Function} [customizer] 要自定义克隆的函数
+         * @param {string} [key] `value`的key.
+         * @param {Object} [object] `value`的父对象.
          * @param {Object} [stack] Tracks traversed objects and their clone counterparts.
          * @returns {*} Returns the cloned value.
          */
         function baseClone(value, bitmask, customizer, key, object, stack) {
             var result,
-                isDeep = bitmask & CLONE_DEEP_FLAG,
-                isFlat = bitmask & CLONE_FLAT_FLAG,
-                isFull = bitmask & CLONE_SYMBOLS_FLAG;
+                isDeep = bitmask & CLONE_DEEP_FLAG, // 当bitmask = CLONE_DEEP_FLAG时，isDeep = 1, isFlat =0,isFull = 0
+                isFlat = bitmask & CLONE_FLAT_FLAG, // 当bitmask = CLONE_FLAT_FLAG时，isDeep = 0, isFlat =2,isFull = 0
+                isFull = bitmask & CLONE_SYMBOLS_FLAG; // 当bitmask = CLONE_SYMBOLS_FLAG时，isDeep = 0, isFlat =0,isFull = 4
 
             if (customizer) {
                 result = object ? customizer(value, key, object, stack) : customizer(value);
@@ -2654,20 +2655,20 @@
             if (result !== undefined) {
                 return result;
             }
-            if (!isObject(value)) {
+            if (!isObject(value)) { //如果value值是Number，String，Boolean，Undefined，Null，Symbols的其中一种类型，就直接返回value
                 return value;
             }
             var isArr = isArray(value);
-            if (isArr) {
-                result = initCloneArray(value);
-                if (!isDeep) {
+            if (isArr) { 
+                result = initCloneArray(value);//初始化一个数组克隆,eg:[undefined,undefined,...]
+                if (!isDeep) {//_.clone()传入的bitmask是CLONE_SYMBOLS_FLAG，此时isDeep为0,因此_.clone不支持深拷贝
                     return copyArray(value, result);
                 }
             } else {
                 var tag = getTag(value),
-                    isFunc = tag == funcTag || tag == genTag;
-
-                if (isBuffer(value)) {
+                    isFunc = tag == funcTag || tag == genTag;//根据tag判断value是不是函数，包括ES6的Generator函数
+                
+                if (isBuffer(value)) { //如果value 是 Buffer 对象 
                     return cloneBuffer(value, isDeep);
                 }
                 if (tag == objectTag || tag == argsTag || (isFunc && !object)) {
@@ -2980,7 +2981,7 @@
                     } else {
                         arrayPush(result, value); //通过predicate的判断，这里的value是数组
                     }
-                } else if (!isStrict) { //当isStrict不传，那么不能扁平化的value，就直接加入到结果数组的末尾
+                } else if (!isStrict) { //当isStrict等于true，那么不能扁平化的value，就无法加入到结果数组的末尾
                     result[result.length] = value;
                 }
             }
@@ -3482,20 +3483,18 @@
         }
 
         /**
-         * The base implementation of `_.iteratee`.
-         *
-         *  _.iteratee的基础实现
+         * `_.iteratee`的基础实现.
          * 
          * @private
-         * @param {*} [value=_.identity] The value to convert to an iteratee.
+         * @param {*} [value=_.identity] 要转换成一个迭代函数的`value`
          * @returns {Function} 返回一个迭代器
          */
         function baseIteratee(value) {
-            //不要把typeof的结果储存在一个变量中，避免JITbug在 Safari 9，因此在这里他typeof写了两次
+            //不要把typeof的结果储存在一个变量中，避免JITbug在 Safari 9，因此在这里他typeof操作写了两次
             if (typeof value == 'function') {//如果传进来的是函数，那么就当成迭代器
                 return value;
             }
-            if (value == null) { //如果传进来的是null，那么就返回identity函数
+            if (value == null) { //如果传进来的是null，那么就返回_.identity函数
                 return identity; //identity返回传入该函数的第一个参数
             }
             if (typeof value == 'object') {
@@ -3503,6 +3502,7 @@
                     ? baseMatchesProperty(value[0], value[1])
                     : baseMatches(value);
             }
+            //如果value是数字，字符串，布尔值，symbol值就，返回获取_.property(value)的结果
             return property(value);
         }
 
@@ -4533,20 +4533,24 @@
         };
 
         /**
-         * Creates a clone of  `buffer`.
-         *
+         * 创建一个`buffer`的拷贝.
+         * 使用buffer.slice()实现深拷贝
+         * 使用buffer.copy()实现浅拷贝
          * @private
-         * @param {Buffer} buffer The buffer to clone.
-         * @param {boolean} [isDeep] Specify a deep clone.
-         * @returns {Buffer} Returns the cloned buffer.
+         * @param {Buffer} buffer 要克隆的buffer
+         * @param {boolean} [isDeep] 指定深度克隆
+         * @returns {Buffer} 返回一个拷贝的buffer
          */
         function cloneBuffer(buffer, isDeep) {
-            if (isDeep) {
+            if (isDeep) { //深拷贝
+                //buffer.slice返回一个指向相同原始内存的新建的 Buffer，但做了偏移且通过 start 和 end 索引进行裁剪
+                //因此，修改这个新建的Buffer切片，也会同时修改原始的Buffer的内存，因为这两个对象所分配的内存是重叠的。
                 return buffer.slice();
             }
-            var length = buffer.length,
+            var length = buffer.length,//返回buffer在字节数上分配的内存量.注意，这并不一定反映buffer内可用的数据量
                 result = allocUnsafe ? allocUnsafe(length) : new buffer.constructor(length);
-
+            //buffer.copy方法拷贝buffer的一个区域的数据到target的一个区域。
+            //此时修改buffer,并不会修改result
             buffer.copy(result);
             return result;
         }
@@ -4766,11 +4770,11 @@
         }
 
         /**
-         * 将`source`的值复制到`array`。
+         * 将`source`的值复制到`array`。一种浅拷贝
          *
          * @private
          * @param {Array} source 要复制值的源数组
-         * @param {Array} [array=[]] 将值复制过去的目标数组
+         * @param {Array} [array=[]] 将值复制过去的结果数组
          * @returns {Array} 返回新数组
          */
         function copyArray(source, array) {
@@ -5951,6 +5955,7 @@
          * this function returns the custom method, otherwise it returns `baseIteratee`.
          * If arguments are provided, the chosen function is invoked with them and
          * its result is returned.
+         * 得到恰当的迭代器函数。如果`_.iteratee`是自定义的，这个函数返回自定义的方法。否则，返回`baseIteratee`
          *
          * @private
          * @param {*} [value] The value to convert to an iteratee.
@@ -6196,17 +6201,20 @@
         }
 
         /**
-         * Initializes an array clone.
+         * 初始化一个数组克隆
+         * 跟`array`有一样大小的length,如果是`RegExp#exec`的结果数组，还有相同的index,input属性。
+         * 不支持初始化用户自定义的属性
          *
          * @private
-         * @param {Array} array The array to clone.
-         * @returns {Array} Returns the initialized clone.
+         * @param {Array} array 要克隆的数组
+         * @returns {Array} 返回初始化的克隆数组(还没有克隆array所有索引上的值)
          */
         function initCloneArray(array) {
             var length = array.length,
                 result = new array.constructor(length);
 
-            // Add properties assigned by `RegExp#exec`.
+            // 添加所有由`RegExp#exec`分配的属性。eg：[ 'a', index: 0, input: 'aaa' ]
+            // 这里考虑到了函数RegExp.exec调用的结果数组的特殊性，克隆这类数组，需要考虑到index,input属性
             if (length && typeof array[0] == 'string' && hasOwnProperty.call(array, 'index')) {
                 result.index = array.index;
                 result.input = array.input;
@@ -6986,7 +6994,7 @@
             //values是difference实参中除了array之外的所有剩余参数
             //因此，difference方法接受多个要过滤的数组
             return isArrayLikeObject(array)
-                ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject, true))
+                ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject, true))//传true，可以排除不是isArrayLikeObject的参数，比如基本数据类型的值，和函数
                 : [];
         });
 
@@ -7012,15 +7020,19 @@
          * _.differenceBy([2.1, 1.2], [2.3, 3.4], Math.floor);
          * // => [1.2]
          *
-         * // The `_.property` iteratee shorthand.
+         * // `_.property`迭代器的简写
          * _.differenceBy([{ 'x': 2 }, { 'x': 1 }], [{ 'x': 1 }], 'x');
          * // => [{ 'x': 2 }]
          */
         var differenceBy = baseRest(function (array, values) {
             var iteratee = last(values);
+            //如果differenceBy的最后一个参数是isArrayLikeObject，
+            //那么说明没有往differenceBy函数中传迭代器，此时differenceBy与difference其实是一样的
+            //也就是说，iteratee可以是函数，也可以是基本数据类型
             if (isArrayLikeObject(iteratee)) {
                 iteratee = undefined;
             }
+            //baseFlatten函数中传true，可以排除不是isArrayLikeObject的参数，比如基本数据类型的值，和函数
             return isArrayLikeObject(array)
                 ? baseDifference(array, baseFlatten(values, 1, isArrayLikeObject, true), getIteratee(iteratee, 2))
                 : [];
@@ -11038,22 +11050,19 @@
         }
 
         /**
-         * Creates a shallow clone of `value`.
-         *
-         * **Note:** This method is loosely based on the
-         * [structured clone algorithm](https://mdn.io/Structured_clone_algorithm)
-         * and supports cloning arrays, array buffers, booleans, date objects, maps,
-         * numbers, `Object` objects, regexes, sets, strings, symbols, and typed
-         * arrays. The own enumerable properties of `arguments` objects are cloned
-         * as plain objects. An empty object is returned for uncloneable values such
-         * as error objects, functions, DOM nodes, and WeakMaps.
+         * 创建一个 value 的浅拷贝。 
+         * 注意: 这个方法基于[structured clone algorithm](https://mdn.io/Structured_clone_algorithm)实现的
+         * 以及支持克隆 arrays、array buffers、 booleans、date objects、maps、 numbers， 
+         * Object 对象, regexes, sets, strings, symbols, 以及 typed arrays。 
+         * `arguments`对象的可枚举属性会被拷贝为普通对象。 
+         * 一些不可拷贝的对象，例如error objects、functions, DOM nodes, 以及 WeakMaps 会返回空对象。
          *
          * @static
          * @memberOf _
          * @since 0.1.0
          * @category Lang
-         * @param {*} value The value to clone.
-         * @returns {*} Returns the cloned value.
+         * @param {*} value 要克隆的值
+         * @returns {*} 返回克隆的值
          * @see _.cloneDeep
          * @example
          *
@@ -11299,7 +11308,7 @@
         };
 
         /**
-         * 检查`value`是否可以是数组对象
+         * 检查`value`是否是数组
          *
          * @static
          * @memberOf _
@@ -11422,14 +11431,15 @@
         }
 
         /**
-         * Checks if `value` is a buffer.
+         *  检查`value`是否是一个`Buffer`（node.js 支持Buffer类型，浏览器环境不支持Buffer类型).
+         *  `Buffer`类的实例类似于整数数组，但`Buffer`的大小是固定的、且在`V8`堆外分配物理内存。`Buffer`的大小在被创建时确定，且无法调整。
          *
          * @static
          * @memberOf _
          * @since 4.3.0
          * @category Lang
-         * @param {*} value The value to check.
-         * @returns {boolean} Returns `true` if `value` is a buffer, else `false`.
+         * @param {*} value 要检查的值.
+         * @returns {boolean} 如果`value`是Buffer对象，就返回`true`, 否则返回`false`.
          * @example
          *
          * _.isBuffer(new Buffer(2));
@@ -16052,13 +16062,13 @@
         }
 
         /**
-         * This method returns `false`.
+         * 这个方法返回 `false`.
          *
          * @static
          * @memberOf _
          * @since 4.13.0
          * @category Util
-         * @returns {boolean} Returns `false`.
+         * @returns {boolean}  返回 `false`.
          * @example
          *
          * _.times(2, _.stubFalse);
