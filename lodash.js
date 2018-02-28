@@ -2496,17 +2496,19 @@
         }
 
         /**
-         * Assigns `value` to `key` of `object` if the existing value is not equivalent
-         * using [`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)
-         * for equality comparisons.
-         *
+         * 给`object`分配`key`和`value`。在可以不分配的情况下，不会调用baseAssignValue函数。
+         * 使用[`SameValueZero`](http://ecma-international.org/ecma-262/7.0/#sec-samevaluezero)做相等比较
+         * 
          * @private
-         * @param {Object} object The object to modify.
-         * @param {string} key The key of the property to assign.
-         * @param {*} value The value to assign.
+         * @param {Object} object 要修改的object
+         * @param {string} key 要分配的属性的key
+         * @param {*} value 要分配的value
          */
         function assignValue(object, key, value) {
             var objValue = object[key];
+            //在一下几种情况下分配`key`和`value`
+            //1.object自身不存在key属性
+            //2.object存在key属性时，objValue 与 value不相等时
             if (!(hasOwnProperty.call(object, key) && eq(objValue, value)) ||
                 (value === undefined && !(key in object))) {
                 baseAssignValue(object, key, value);
@@ -2576,15 +2578,17 @@
         }
 
         /**
-         * The base implementation of `assignValue` and `assignMergeValue` without
-         * value checks.
+         * `assignValue` 和 `assignMergeValue`的实现基础，没有检查值
+         * 
+         *  直接在object对象上设置key属性和value属性值
          *
          * @private
-         * @param {Object} object The object to modify.
-         * @param {string} key The key of the property to assign.
-         * @param {*} value The value to assign.
+         * @param {Object} object 要修改的对象
+         * @param {string} key 要分配的属性的key
+         * @param {*} value 要分配的value
          */
         function baseAssignValue(object, key, value) {
+            //如果要设置的是'__proto__'属性，且存在Object.defineProperty函数,就用Object.defineProperty分配属性
             if (key == '__proto__' && defineProperty) {
                 defineProperty(object, key, {
                     'configurable': true,
@@ -3549,11 +3553,11 @@
         }
 
         /**
-         * The base implementation of `_.keysIn` which doesn't treat sparse arrays as dense.
+         * `_.keysIn`的基础实现， 它不会把稀疏数组当做密集数组
          *
          * @private
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of property names.
+         * @param {Object} object 要查询的`object`.
+         * @returns {Array} 返回属性名的数组.
          */
         function baseKeysIn(object) {
             if (!isObject(object)) {
@@ -3563,6 +3567,7 @@
                 result = [];
 
             for (var key in object) {
+                //结果数组中去掉原型上的'constructor'属性。
                 if (!(key == 'constructor' && (isProto || !hasOwnProperty.call(object, key)))) {
                     result.push(key);
                 }
@@ -4816,16 +4821,15 @@
          * 拷贝`source`对象的属性到`object`对象.
          *
          * @private
-         * @param {Object} source The object to copy properties from.
-         * @param {Array} props The property identifiers to copy.
-         * @param {Object} [object={}] The object to copy properties to.
-         * @param {Function} [customizer] The function to customize copied values.
-         * @returns {Object} Returns `object`.
+         * @param {Object} source 要从中复制属性的对象
+         * @param {Array} props 要复制的属性标识符.
+         * @param {Object} [object={}] 要复制属性的目标对象
+         * @param {Function} [customizer] 用于自定义复制值的函数
+         * @returns {Object} 返回 `object`.
          */
         function copyObject(source, props, object, customizer) {
-            var isNew = !object;
+            var isNew = !object; // object可能会不传，比如在toPlainObject方法中，这是需要给object一个默认值{}
             object || (object = {});
-
             var index = -1,
                 length = props.length;
 
@@ -4835,11 +4839,11 @@
                 var newValue = customizer
                     ? customizer(object[key], source[key], key, object, source)
                     : undefined;
-
+                //customizer返回的结果是undefined，将source[key]作为newValue的值。
                 if (newValue === undefined) {
                     newValue = source[key];
                 }
-                if (isNew) {
+                if (isNew) {//isNew为true，表示object一开始就是个干净的对象，没有任何属性。
                     baseAssignValue(object, key, newValue);
                 } else {
                     assignValue(object, key, newValue);
@@ -5978,19 +5982,18 @@
         }
 
         /**
-         * Gets the appropriate "iteratee" function. If `_.iteratee` is customized,
-         * this function returns the custom method, otherwise it returns `baseIteratee`.
-         * If arguments are provided, the chosen function is invoked with them and
-         * its result is returned.
          * 得到恰当的迭代器函数。如果`_.iteratee`是自定义的，这个函数返回自定义的方法。否则，返回`baseIteratee`
          *
+         * 如果参数提供了，那么选择的函数与参数就会一起调用，并返回结果。
+         * 
          * @private
-         * @param {*} [value] The value to convert to an iteratee.
-         * @param {number} [arity] The arity of the created iteratee.
-         * @returns {Function} Returns the chosen function or its result.
+         * @param {*} [value] 要转换为迭代器的值
+         * @param {number} [arity] 创建的迭代器的参数数量。
+         * @returns {Function} 返回选择的函数或调用结果
          */
         function getIteratee() {
-            var result = lodash.iteratee || iteratee;
+            var result = lodash.iteratee || iteratee; 
+            //最初lodash.iteratee引用的就是iteratee函数，如果lodash.iteratee 与 iteratee不相等，说明_.iteratee引用的函数是自定义的
             result = result === iteratee ? baseIteratee : result;
             return arguments.length ? result(arguments[0], arguments[1]) : result;
         }
@@ -6603,17 +6606,16 @@
         }
 
         /**
-         * This function is like
-         * [`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)
-         * except that it includes inherited enumerable properties.
+         * 这个函数类似[`Object.keys`](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)，
+         * 此外它还包括继承来的可枚举属性。
          *
          * @private
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of property names.
+         * @param {Object} object 要查询的object.
+         * @returns {Array} 返回属性名的数组.
          */
         function nativeKeysIn(object) {
             var result = [];
-            if (object != null) {
+            if (object != null) {//如果不是null或undefined，就强制转为对象，然后找出所有的可枚举属性
                 for (var key in Object(object)) {
                     result.push(key);
                 }
@@ -12680,26 +12682,25 @@
                 return;
             }
             for (var key in source) {
-                if (hasOwnProperty.call(source, key)) {
+                if (hasOwnProperty.call(source, key)) {//只分配source自身的属性
                     assignValue(object, key, source[key]);
                 }
             }
         });
 
         /**
-         * This method is like `_.assign` except that it iterates over own and
-         * inherited source properties.
+         * 这个方法类似 _.assign， 除了它会遍历并继承来源对象的属性。 
          *
-         * **Note:** This method mutates `object`.
+         * **Note**: 这方法会改变 `object`。
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @alias extend
          * @category Object
-         * @param {Object} object The destination object.
-         * @param {...Object} [sources] The source objects.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {...Object} [sources] 来源对象.
+         * @returns {Object} 返回`object`.
          * @see _.assign
          * @example
          *
@@ -12722,22 +12723,21 @@
         });
 
         /**
-         * This method is like `_.assignIn` except that it accepts `customizer`
-         * which is invoked to produce the assigned values. If `customizer` returns
-         * `undefined`, assignment is handled by the method instead. The `customizer`
-         * is invoked with five arguments: (objValue, srcValue, key, object, source).
+         * 这个方法类似`_.assignIn`，此外还接受`customizer`方法，它被调用来产生自定义的分配值。如果`customizer`
+         * 返回`undefined`，如果 `customizer`返回`undefined`，分配将由这个方法控制。
+         * `customizer` 会传入5个参数： (objValue, srcValue, key, object, source)。 
          *
-         * **Note:** This method mutates `object`.
+         * **注意:** 这个方法会改变`object`.
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @alias extendWith
          * @category Object
-         * @param {Object} object The destination object.
-         * @param {...Object} sources The source objects.
-         * @param {Function} [customizer] The function to customize assigned values.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {...Object} sources 源对象.
+         * @param {Function} [customizer] 用来自定义分配值的函数
+         * @returns {Object} 返回`object`.
          * @see _.assignWith
          * @example
          *
@@ -12759,21 +12759,20 @@
         });
 
         /**
-         * This method is like `_.assign` except that it accepts `customizer`
-         * which is invoked to produce the assigned values. If `customizer` returns
-         * `undefined`, assignment is handled by the method instead. The `customizer`
-         * is invoked with five arguments: (objValue, srcValue, key, object, source).
+         * 这个方法类似 `_.assign`,此外它接受`customizer`函数，它被用来产生自定义的分配值。如果`customizer`
+         * 返回`undefined`，如果 `customizer`返回`undefined`，分配将由这个方法控制。
+         * `customizer` 会传入5个参数： (objValue, srcValue, key, object, source)。 
          *
-         * **Note:** This method mutates `object`.
+         * **注意:** 这个方法改变`object`.
          *
          * @static
          * @memberOf _
          * @since 4.0.0
          * @category Object
-         * @param {Object} object The destination object.
-         * @param {...Object} sources The source objects.
-         * @param {Function} [customizer] The function to customize assigned values.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {...Object} sources 源对象.
+         * @param {Function} [customizer] 用来自定义分配值的函数.
+         * @returns {Object} 返回 `object`.
          * @see _.assignInWith
          * @example
          *
@@ -13366,7 +13365,7 @@
         var invoke = baseRest(baseInvoke);
 
         /**
-         * 创建一个包含`object`的自身可枚举属性名称的数组。
+         * 创建一个的数组，包含`object`的所有自身可枚举属性名。
          *
          * **注意:** 非对象的值会被强制转换为对象. 查看 
          * [ES spec](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)了解详情
@@ -13397,16 +13396,16 @@
         }
 
         /**
-         * Creates an array of the own and inherited enumerable property names of `object`.
+         * 创建一个的数组，包含`object`自身和继承的所有可枚举属性名。
          *
-         * **Note:** Non-object values are coerced to objects.
+         * **注意**: 非对象的值会被强制转换为对象。
          *
          * @static
          * @memberOf _
          * @since 3.0.0
          * @category Object
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of property names.
+         * @param {Object} object 要查询的object.
+         * @returns {Array} 返回属性名的数组.
          * @example
          *
          * function Foo() {
