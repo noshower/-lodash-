@@ -306,7 +306,7 @@
         typedArrayTags[setTag] = typedArrayTags[stringTag] =
         typedArrayTags[weakMapTag] = false;
 
-    /** Used to identify `toStringTag` values supported by `_.clone`. */
+    /** 用于标识`_.clone`支持的`toStringTag`值. */
     var cloneableTags = {};
     cloneableTags[argsTag] = cloneableTags[arrayTag] =
         cloneableTags[arrayBufferTag] = cloneableTags[dataViewTag] =
@@ -560,13 +560,12 @@
     }
 
     /**
-     * A specialized version of `_.filter` for arrays without support for
-     * iteratee shorthands.
+     * 数组`_.filter` 的特别版本，不支持迭代器的简写
      *
      * @private
-     * @param {Array} [array] The array to iterate over.
-     * @param {Function} predicate The function invoked per iteration.
-     * @returns {Array} Returns the new filtered array.
+     * @param {Array} [array] 要迭代的数组.
+     * @param {Function} predicate 每次迭代要调用的函数.
+     * @returns {Array} 返回新的过滤的数组
      */
     function arrayFilter(array, predicate) {
         var index = -1,
@@ -576,7 +575,7 @@
 
         while (++index < length) {
             var value = array[index];
-            if (predicate(value, index, array)) {
+            if (predicate(value, index, array)) { //predicate成功的才会被加到结果数组
                 result[resIndex++] = value;
             }
         }
@@ -1546,6 +1545,7 @@
 
         /** Used to convert symbols to primitives and strings. */
         var symbolProto = Symbol ? Symbol.prototype : undefined,
+        // Symbol.prototype.valueOf 方法返回当前 symbol 对象所包含的 symbol 原始值。
             symbolValueOf = symbolProto ? symbolProto.valueOf : undefined,
             symbolToString = symbolProto ? symbolProto.toString : undefined;
 
@@ -2552,26 +2552,29 @@
         }
 
         /**
-         * The base implementation of `_.assign` without support for multiple sources
-         * or `customizer` functions.
+         * `_.assign`的基础实现，不支持传入多个源对象，也不支持`customizer`函数。
+         * 
+         * **注意：**这个方法，并不会把源对象上的symbol类型的属性分配到目标对象上。
+         *
          *
          * @private
-         * @param {Object} object The destination object.
-         * @param {Object} source The source object.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {Object} source 源对象.
+         * @returns {Object} 返回 `object`.
          */
         function baseAssign(object, source) {
             return object && copyObject(source, keys(source), object);
         }
 
         /**
-         * The base implementation of `_.assignIn` without support for multiple sources
-         * or `customizer` functions.
+         * `_.assignIn`的基础实现，不支持传入多个源对象，也不支持`customizer`函数。
+         * 
+         * **注意：**这个方法，并不会把源对象上的symbol类型的属性（继承来的也一样）分配到目标对象上。
          *
          * @private
-         * @param {Object} object The destination object.
-         * @param {Object} source The source object.
-         * @returns {Object} Returns `object`.
+         * @param {Object} object 目标对象.
+         * @param {Object} source 源对象.
+         * @returns {Object} 返回 `object`.
          */
         function baseAssignIn(object, source) {
             return object && copyObject(source, keysIn(source), object);
@@ -2663,7 +2666,7 @@
                 isDeep = bitmask & CLONE_DEEP_FLAG, // 当bitmask = CLONE_DEEP_FLAG时，isDeep = 1, isFlat =0,isFull = 0
                 isFlat = bitmask & CLONE_FLAT_FLAG, // 当bitmask = CLONE_FLAT_FLAG时，isDeep = 0, isFlat =2,isFull = 0
                 isFull = bitmask & CLONE_SYMBOLS_FLAG; // 当bitmask = CLONE_SYMBOLS_FLAG时，isDeep = 0, isFlat =0,isFull = 4
-
+         
             if (customizer) {
                 result = object ? customizer(value, key, object, stack) : customizer(value);
             }
@@ -2674,15 +2677,14 @@
                 return value;
             }
             var isArr = isArray(value);
-            if (isArr) { 
+            if (isArr) { //如果是数组
                 result = initCloneArray(value);//初始化一个数组克隆,eg:[undefined,undefined,...]
                 if (!isDeep) {//_.clone()传入的bitmask是CLONE_SYMBOLS_FLAG，此时isDeep为0,因此_.clone不支持深拷贝
                     return copyArray(value, result);
                 }
-            } else {
+            } else {//不是数组
                 var tag = getTag(value),
                     isFunc = tag == funcTag || tag == genTag;//根据tag判断value是不是函数，包括ES6的Generator函数
-                
                 if (isBuffer(value)) { //如果value 是 Buffer 对象 
                     return cloneBuffer(value, isDeep);//cloneBuffer支持浅拷贝和深拷贝
                 }
@@ -2695,7 +2697,7 @@
                             : copySymbols(value, baseAssign(result, value));
                     }
                 } else {
-                    if (!cloneableTags[tag]) {
+                    if (!cloneableTags[tag]) {//errorTag，funcTag,weakMapTag这三个标识对应的对象不支持克隆
                         return object ? value : {};
                     }
                     result = initCloneByTag(value, tag, isDeep);
@@ -4585,11 +4587,11 @@
         }
 
         /**
-         * Creates a clone of `arrayBuffer`.
+         * 创建一个`arrayBuffer`的克隆
          *
          * @private
-         * @param {ArrayBuffer} arrayBuffer The array buffer to clone.
-         * @returns {ArrayBuffer} Returns the cloned array buffer.
+         * @param {ArrayBuffer} arrayBuffer 要克隆的 array buffer.
+         * @returns {ArrayBuffer} 返回克隆的 array buffer.
          */
         function cloneArrayBuffer(arrayBuffer) {
             var result = new arrayBuffer.constructor(arrayBuffer.byteLength);
@@ -4598,49 +4600,62 @@
         }
 
         /**
-         * Creates a clone of `dataView`.
+         * 创建一个`dataView`的克隆.
+         * 
+         * `DataView` 视图是一个可以从 ArrayBuffer 对象中读写多种数值类型的底层接口，在读写时不用考虑平台字节序问题。
          *
          * @private
-         * @param {Object} dataView The data view to clone.
-         * @param {boolean} [isDeep] Specify a deep clone.
-         * @returns {Object} Returns the cloned data view.
+         * @param {Object} dataView 要克隆的data view.
+         * @param {boolean} [isDeep] 指定深度克隆
+         * @returns {Object} 返回克隆的data view
          */
         function cloneDataView(dataView, isDeep) {
+            //DataView.prototype.buffer 被视图引入的ArrayBuffer.创建实例的时候已固化因此是只读的.
+            //DataView.prototype.byteLength 从 ArrayBuffer中读取的字节长度.创建实例的时候已固化因此是只读的. 
+            //DataView.prototype.byteOffset 从 ArrayBuffer读取时的偏移字节长度. 创建实例的时候已固化因此是只读的.
+            //DataView.prototype.constructor 指定用来生成原型的构造函数.初始化值是标准内置DataView构造器.
             var buffer = isDeep ? cloneArrayBuffer(dataView.buffer) : dataView.buffer;
             return new dataView.constructor(buffer, dataView.byteOffset, dataView.byteLength);
         }
 
         /**
-         * Creates a clone of `regexp`.
+         * 创建一个`regexp`的克隆.
          *
          * @private
-         * @param {Object} regexp The regexp to clone.
-         * @returns {Object} Returns the cloned regexp.
+         * @param {Object} regexp 要克隆的`regexp`
+         * @returns {Object} 返回克隆的regexp.
          */
         function cloneRegExp(regexp) {
+            //var a = /^a$/g; a.source == "^a$"
+            //reFlags.exec(regexp) 用来得到正则表达式regexp的标志
+            //eg: reFlags.exec(a) 返回 ["g", index: 5, input: "/^a$/g"]
+            // new RegExp(pattern [, flags])
             var result = new regexp.constructor(regexp.source, reFlags.exec(regexp));
-            result.lastIndex = regexp.lastIndex;
+            result.lastIndex = regexp.lastIndex;//还要复制lastIndex属性
             return result;
         }
 
         /**
-         * Creates a clone of the `symbol` object.
+         * 创建一个`symbol`对象的克隆.
          *
          * @private
-         * @param {Object} symbol The symbol object to clone.
-         * @returns {Object} Returns the cloned symbol object.
+         * @param {Object} symbol 要克隆的symbol对象.
+         * @returns {Object} 返回克隆的symbol对象
          */
         function cloneSymbol(symbol) {
+            //判断环境是否支持Symbol
+            // var a =  Symbol('noshower');  Object(symbolValueOf.call(symbol)) 
+            // 返回Symbol: Symbol(noshower)]
             return symbolValueOf ? Object(symbolValueOf.call(symbol)) : {};
         }
 
         /**
-         * Creates a clone of `typedArray`.
+         * 创建一个`typedArray`的克隆.
          *
          * @private
-         * @param {Object} typedArray The typed array to clone.
-         * @param {boolean} [isDeep] Specify a deep clone.
-         * @returns {Object} Returns the cloned typed array.
+         * @param {Object} typedArray 要克隆的typed array 
+         * @param {boolean} [isDeep] 指定深度克隆
+         * @returns {Object} 返回克隆的 typed array.
          */
         function cloneTypedArray(typedArray, isDeep) {
             var buffer = isDeep ? cloneArrayBuffer(typedArray.buffer) : typedArray.buffer;
@@ -4853,24 +4868,24 @@
         }
 
         /**
-         * Copies own symbols of `source` to `object`.
+         * 拷贝`source`自身的可枚举的属性到`object`
          *
          * @private
-         * @param {Object} source The object to copy symbols from.
-         * @param {Object} [object={}] The object to copy symbols to.
-         * @returns {Object} Returns `object`.
+         * @param {Object} source 要拷贝symbol属性的源对象.
+         * @param {Object} [object={}] 拷贝symbol属性的目标对象
+         * @returns {Object} 返回 `object`.
          */
         function copySymbols(source, object) {
             return copyObject(source, getSymbols(source), object);
         }
 
         /**
-         * Copies own and inherited symbols of `source` to `object`.
+         * 从`source`中拷贝自身和继承过来的可枚举的所有symbol属性到`object`
          *
          * @private
-         * @param {Object} source The object to copy symbols from.
-         * @param {Object} [object={}] The object to copy symbols to.
-         * @returns {Object} Returns `object`.
+         * @param {Object} source 要拷贝symbol属性的源对象
+         * @param {Object} [object={}] 拷贝symbol属性的目标对象
+         * @returns {Object} 返回 `object`.
          */
         function copySymbolsIn(source, object) {
             return copyObject(source, getSymbolsIn(source), object);
@@ -5992,7 +6007,7 @@
          * @returns {Function} 返回选择的函数或调用结果
          */
         function getIteratee() {
-            var result = lodash.iteratee || iteratee; 
+            var result = lodash.iteratee || iteratee;
             //最初lodash.iteratee引用的就是iteratee函数，如果lodash.iteratee 与 iteratee不相等，说明_.iteratee引用的函数是自定义的
             result = result === iteratee ? baseIteratee : result;
             return arguments.length ? result(arguments[0], arguments[1]) : result;
@@ -6094,29 +6109,38 @@
         }
 
         /**
-         * Creates an array of the own enumerable symbols of `object`.
+         * 创建一个数组，包含`object`自身的所有可以枚举的symbols属性。
+         * 
+         * 如果环境中不存在Object.getOwnPropertySymbols方法，那么就返回空数组。否则，
+         * 将自身所有可枚举的symbol属性返回。
          *
          * @private
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of symbols.
+         * @param {Object} 要查询的对象
+         * @returns {Array} 返回symbols数组
          */
         var getSymbols = !nativeGetSymbols ? stubArray : function (object) {
-            if (object == null) {
+            if (object == null) {//如果是undefined和null直接返回[]
                 return [];
             }
-            object = Object(object);
+            object = Object(object); //这里会将不是对象的，强制转为对象
             return arrayFilter(nativeGetSymbols(object), function (symbol) {
+                //这里过滤掉不可枚举的symbol属性。因为Object.getOwnPropertySymbols返回的结果包含可枚举的和不可枚举的
                 return propertyIsEnumerable.call(object, symbol);
             });
         };
 
         /**
-         * Creates an array of the own and inherited enumerable symbols of `object`.
+         * 
+         * 创建一个数组，包含这个`object`自身和继承来的所有可枚举的symbol类型属性；
+         * 
+         * 如果环境中不存在Object.getOwnPropertySymbols方法，那么就返回空数组。否则，
+         * 将自身和原型链上的所有可枚举的symbol属性返回。
          *
          * @private
-         * @param {Object} object The object to query.
-         * @returns {Array} Returns the array of symbols.
+         * @param {Object} object 要查询的对象
+         * @returns {Array} 返回symbol数组
          */
+        
         var getSymbolsIn = !nativeGetSymbols ? stubArray : function (object) {
             var result = [];
             while (object) {
@@ -6266,19 +6290,19 @@
         }
 
         /**
-         * Initializes an object clone based on its `toStringTag`.
+         * 基于它的`toStringTag`初始化一个对象克隆
          *
-         * **Note:** This function only supports cloning values with tags of
+         * **注意:** This function only supports cloning values with tags of
          * `Boolean`, `Date`, `Error`, `Map`, `Number`, `RegExp`, `Set`, or `String`.
          *
          * @private
-         * @param {Object} object The object to clone.
-         * @param {string} tag The `toStringTag` of the object to clone.
-         * @param {boolean} [isDeep] Specify a deep clone.
-         * @returns {Object} Returns the initialized clone.
+         * @param {Object} object 要克隆的对象
+         * @param {string} tag 要克隆的对象的`toStringTag`值
+         * @param {boolean} [isDeep] 指定深度克隆
+         * @returns {Object} 返回初始化的克隆
          */
         function initCloneByTag(object, tag, isDeep) {
-            var Ctor = object.constructor;
+            var Ctor = object.constructor;//获取要克隆的对象的构造函数，以此保证new的结果类型一致
             switch (tag) {
                 case arrayBufferTag:
                     return cloneArrayBuffer(object);
@@ -6340,6 +6364,7 @@
          * @returns {boolean} 如果是value可以扁平化的，返回true，反之返回false
          */
         function isFlattenable(value) {
+            //在支持Symbol.isConcatSpreadable的环境中，如果value的Symbol.isConcatSpreadable为true，也是可扁平化的
             return isArray(value) || isArguments(value) ||
                 !!(spreadableSymbol && value && value[spreadableSymbol]);
         }
@@ -12650,6 +12675,8 @@
         /**
          * 分配源对象的可枚举属性到目标对象上。 源对象的应用是从左到右，随后的源对象的属性会覆盖上一个对象的属性。
          * 
+         * **注意：**这个方法并不会分配源对象的symbol类型的属性；
+         * 
          * **注意:** 这方法会改变`object`和基于[`Object.assign`](https://mdn.io/Object/assign)实现的.
          *
          * @static
@@ -12690,6 +12717,8 @@
 
         /**
          * 这个方法类似 _.assign， 除了它会遍历并继承来源对象的属性。 
+         * 
+         * **注意：**这个方法并不会分配源对象的symbol类型的属性；
          *
          * **Note**: 这方法会改变 `object`。
          *
@@ -12727,6 +12756,8 @@
          * 返回`undefined`，如果 `customizer`返回`undefined`，分配将由这个方法控制。
          * `customizer` 会传入5个参数： (objValue, srcValue, key, object, source)。 
          *
+         * **注意：**这个方法并不会分配源对象的symbol类型的属性；
+         * 
          * **注意:** 这个方法会改变`object`.
          *
          * @static
@@ -12763,6 +12794,8 @@
          * 返回`undefined`，如果 `customizer`返回`undefined`，分配将由这个方法控制。
          * `customizer` 会传入5个参数： (objValue, srcValue, key, object, source)。 
          *
+         * **注意：**这个方法并不会分配源对象的symbol类型的属性；
+         * 
          * **注意:** 这个方法改变`object`.
          *
          * @static
@@ -13367,6 +13400,8 @@
         /**
          * 创建一个的数组，包含`object`的所有自身可枚举属性名。
          *
+         * **注意**：这个方法并不能取到对象symbol类型的属性名
+         * 
          * **注意:** 非对象的值会被强制转换为对象. 查看 
          * [ES spec](http://ecma-international.org/ecma-262/7.0/#sec-object.keys)了解详情
          *
@@ -13397,8 +13432,10 @@
 
         /**
          * 创建一个的数组，包含`object`自身和继承的所有可枚举属性名。
-         *
+         * 
          * **注意**: 非对象的值会被强制转换为对象。
+         * 
+         * **注意**：这个方法并不能取到对象symbol类型的属性名，也不能取到继承来的
          *
          * @static
          * @memberOf _
@@ -16077,13 +16114,13 @@
         var rangeRight = createRange(true);
 
         /**
-         * This method returns a new empty array.
+         * 这个方法返回新的空数组
          *
          * @static
          * @memberOf _
          * @since 4.13.0
          * @category Util
-         * @returns {Array} Returns the new empty array.
+         * @returns {Array} 返回新的空数组.
          * @example
          *
          * var arrays = _.times(2, _.stubArray);
